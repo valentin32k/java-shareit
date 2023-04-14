@@ -9,11 +9,10 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 
 @Value
-@With
 @Builder
 public class User {
 
-    long id;
+    @With long id;
 
     @NotBlank(message = "Name cannot be empty")
     @Size(max = 100, message = "Name must be shorter than 100 characters")
