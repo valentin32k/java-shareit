@@ -14,20 +14,25 @@ import javax.validation.constraints.Size;
 @Builder
 public class Item {
 
-    @With long id;
+    @With
+    long id;
 
     @NotBlank(message = "Name cannot be empty")
     @Size(max = 100, message = "Name must be shorter than 100 characters")
-    @With String name;
+    @With
+    String name;
 
     @NotNull(message = "Description cannot be null")
     @Size(max = 300, message = "Description must be shorter than 300 characters")
-    @With String description;
+    @With
+    String description;
 
     @NotNull(message = "Description cannot be null")
-    @With Boolean available;
+    @With
+    Boolean available;
 
-    @With User owner;
+    @With
+    User owner;
 
     ItemRequest request;
 }
