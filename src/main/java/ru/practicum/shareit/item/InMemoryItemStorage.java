@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 @Component
 public class InMemoryItemStorage implements ItemStorage {
     private final HashMap<Long, Item> itemsById = new HashMap<>();
-    long id = 0;
+    private long id = 0;
 
     @Override
     public Item createItem(Item item) {
@@ -40,7 +40,7 @@ public class InMemoryItemStorage implements ItemStorage {
 
     @Override
     public List<Item> findItemsWithText(String text) {
-        if (text.equals("")) {
+        if ("".equals(text)) {
             return new ArrayList<>();
         }
         return itemsById.values()
