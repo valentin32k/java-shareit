@@ -44,7 +44,9 @@ public class UserController {
     @PatchMapping("/{userId}")
     public User updateUser(@RequestBody UserDto userDto, @PathVariable Long userId) {
         log.info("Request received PATCH /users: with id = {}", userId);
-        return userService.updateUser(UserMapper.fromUserDto(userDto).withId(userId));
+        User patchedUser = UserMapper.fromUserDto(userDto);
+        patchedUser.setId(userId);
+        return userService.updateUser(patchedUser);
     }
 
     @DeleteMapping("/{userId}")

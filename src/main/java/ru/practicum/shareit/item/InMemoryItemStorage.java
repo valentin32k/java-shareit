@@ -14,9 +14,9 @@ public class InMemoryItemStorage implements ItemStorage {
 
     @Override
     public Item createItem(Item item) {
-        Item itemWithId = item.withId(++id);
-        itemsById.put(id, itemWithId);
-        return itemWithId;
+        item.setId(++id);
+        itemsById.put(id, item);
+        return item;
     }
 
     @Override

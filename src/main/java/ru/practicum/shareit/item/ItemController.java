@@ -11,6 +11,9 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import ru.practicum.shareit.item.dto.CommentDto;
+import ru.practicum.shareit.item.dto.CommentsShort;
+import ru.practicum.shareit.item.dto.ItemBookingsDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemMapper;
 import ru.practicum.shareit.user.User;
@@ -32,8 +35,8 @@ public class ItemController {
                            @RequestHeader("X-Sharer-User-Id") long ownerId) {
         log.info("Request received POST /items: '{}' for user with ownerId = {}", itemDto, ownerId);
         User user = userService.getUserById(ownerId);
-        Item item = ItemMapper.fromItemDto(itemDto)
-                .withOwner(user);
+        Item item = ItemMapper.fromItemDto(itemDto);
+        item.setOwner(user);
         return itemService.createItem(item);
     }
 
@@ -43,19 +46,20 @@ public class ItemController {
                            @RequestHeader("X-Sharer-User-Id") long ownerId) {
         log.info("Request received PATCH /items: with id = {}", itemId);
         Item newItem = ItemMapper.fromItemDto(itemDto);
-        newItem = newItem.withOwner(userService.getUserById(ownerId));
-        newItem = newItem.withId(itemId);
+        newItem.setOwner(userService.getUserById(ownerId));
+        newItem.setId(itemId);
         return itemService.updateItem(newItem);
     }
 
     @GetMapping("/{itemId}")
-    public Item getItemById(@PathVariable long itemId) {
+    public ItemBookingsDto getItemById(@PathVariable long itemId,
+                                       @RequestHeader("X-Sharer-User-Id") long userId) {
         log.info("Request received GET /items: with id = {}", itemId);
-        return itemService.getItemById(itemId);
+        return itemService.getItemById(itemId, userId);
     }
 
     @GetMapping
-    public List<Item> getUserItems(@RequestHeader("X-Sharer-User-Id") long ownerId) {
+    public List<ItemBookingsDto> getUserItems(@RequestHeader("X-Sharer-User-Id") long ownerId) {
         log.info("Request received GET /items: with ownerId = {}", ownerId);
         return itemService.getUserItems(ownerId);
     }
@@ -64,5 +68,14 @@ public class ItemController {
     public List<Item> findItemsWithText(@RequestParam("text") String text) {
         log.info("Request received GET /items/search: with text = {}", text);
         return itemService.findItemsWithText(text);
+    }
+
+    @PostMapping("/{itemId}/comment")
+    public Comment createComment(@RequestBody @Valid CommentDto commentDto,
+                                       @RequestHeader("X-Sharer-User-Id") long userId,
+                                       @PathVariable long itemId) {
+        return itemService.createComment(commentDto.getText(),
+                ItemMapper.fromItemBookingsDto(itemService.getItemById(itemId, userId)),
+                userService.getUserById(userId));
     }
 }

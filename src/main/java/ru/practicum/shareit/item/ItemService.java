@@ -1,5 +1,10 @@
 package ru.practicum.shareit.item;
 
+import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.shareit.item.dto.CommentsShort;
+import ru.practicum.shareit.item.dto.ItemBookingsDto;
+import ru.practicum.shareit.user.User;
+
 import java.util.List;
 
 public interface ItemService {
@@ -28,7 +33,7 @@ public interface ItemService {
      * @param itemId
      * @return item by id
      */
-    Item getItemById(Long itemId);
+    ItemBookingsDto getItemById(Long itemId, long userId);
 
     /**
      * Returns all items by ownerId
@@ -36,7 +41,7 @@ public interface ItemService {
      * @param ownerId
      * @return List of items
      */
-    List<Item> getUserItems(long ownerId);
+    List<ItemBookingsDto> getUserItems(long ownerId);
 
     /**
      * Find items with text
@@ -45,4 +50,7 @@ public interface ItemService {
      * @return List of items
      */
     List<Item> findItemsWithText(String text);
+
+
+    Comment createComment(String commentText, Item item, User author);
 }
