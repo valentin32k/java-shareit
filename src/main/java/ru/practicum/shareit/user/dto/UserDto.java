@@ -4,18 +4,18 @@ import lombok.Builder;
 import lombok.Value;
 
 import javax.validation.constraints.Email;
-import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Size;
 
 @Value
 @Builder
 public class UserDto {
-
-    @NotBlank(message = "Name cannot be empty")
-    @Size(max = 100, message = "Name must be shorter than 100 characters")
+    long id;
+    @NotEmpty(message = "The field name can not be empty")
+    @Size(max = 255, message = "Name must be shorter than 255 characters")
     String name;
-
-    @NotBlank(message = "Email cannot be empty")
-    @Email(message = "Email must be valid")
+    @Email(message = "The field email is incorrect ")
+    @NotEmpty(message = "The field email can not be empty")
+    @Size(max = 255, message = "Email must be shorter than 255 characters")
     String email;
 }

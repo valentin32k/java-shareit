@@ -1,10 +1,5 @@
 package ru.practicum.shareit.item;
 
-import org.springframework.transaction.annotation.Transactional;
-import ru.practicum.shareit.item.dto.CommentsShort;
-import ru.practicum.shareit.item.dto.ItemBookingsDto;
-import ru.practicum.shareit.user.User;
-
 import java.util.List;
 
 public interface ItemService {
@@ -33,24 +28,38 @@ public interface ItemService {
      * @param itemId
      * @return item by id
      */
-    ItemBookingsDto getItemById(Long itemId, long userId);
+    Item getItemById(Long itemId);
 
     /**
-     * Returns all items by ownerId
+     * Returns all user items
      *
      * @param ownerId
      * @return List of items
      */
-    List<ItemBookingsDto> getUserItems(long ownerId);
+    List<Item> getUserItems(long ownerId);
 
     /**
      * Find items with text
+     * If the text is blank return empty ArrayList
      *
      * @param text
      * @return List of items
      */
     List<Item> findItemsWithText(String text);
 
+    /**
+     * Creates a new comment
+     *
+     * @param comment
+     * @return new comment
+     */
+    Comment createComment(Comment comment);
 
-    Comment createComment(String commentText, Item item, User author);
+    /**
+     * Returns item comments by itemId
+     *
+     * @param itemId
+     * @return List of comments
+     */
+    List<Comment> getItemComments(long itemId);
 }

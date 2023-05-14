@@ -20,6 +20,7 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 
 @Entity
@@ -32,26 +33,31 @@ import java.time.LocalDateTime;
 @Builder
 public class Booking {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
     @Column(name = "start_date")
+    @NotNull(message = "The field start date can not be null")
     private LocalDateTime start;
 
     @Column(name = "end_date")
+    @NotNull(message = "The field end date can not be null")
     private LocalDateTime end;
 
     @ManyToOne
+    @NotNull(message = "The field item can not be null")
     @CollectionTable(name = "items", joinColumns = @JoinColumn(name = "id"))
     @JoinColumn(name = "item_id")
     private Item item;
 
     @ManyToOne
+    @NotNull(message = "The field booker can not be null")
     @CollectionTable(name = "users", joinColumns = @JoinColumn(name = "id"))
     @JoinColumn(name = "booker_id")
     private User booker;
 
     @Enumerated(EnumType.STRING)
+    @NotNull(message = "The field status can not be null")
     private BookingStatus status;
 
     @Override
@@ -67,7 +73,4 @@ public class Booking {
         return getClass().hashCode();
     }
 
-    public long bookerId() {
-        return booker.getId();
-    }
 }

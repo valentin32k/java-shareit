@@ -15,6 +15,7 @@ import ru.practicum.shareit.user.dto.UserMapper;
 
 import javax.validation.Valid;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping(path = "/users")
@@ -24,29 +25,40 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping
-    public User createUser(@RequestBody @Valid UserDto userDto) {
+    public UserDto createUser(@RequestBody @Valid UserDto userDto) {
         log.info("Request received POST /users: '{}'", userDto);
-        return userService.createUser(UserMapper.fromUserDto(userDto));
+        return UserMapper
+                .toUserDto(userService
+                        .createUser(UserMapper
+                                .fromUserDto(userDto)));
     }
 
     @GetMapping("/{userId}")
-    public User getUserById(@PathVariable Long userId) {
+    public UserDto getUserById(@PathVariable Long userId) {
         log.info("Request received GET /users: with id = {}", userId);
-        return userService.getUserById(userId);
+        return UserMapper
+                .toUserDto(userService
+                        .getUserById(userId));
     }
 
     @GetMapping
-    public List<User> getUsers() {
+    public List<UserDto> getUsers() {
         log.info("Request received GET /users");
-        return userService.getUsers();
+        return userService
+                .getUsers()
+                .stream()
+                .map(UserMapper::toUserDto)
+                .collect(Collectors.toList());
     }
 
     @PatchMapping("/{userId}")
-    public User updateUser(@RequestBody UserDto userDto, @PathVariable Long userId) {
+    public UserDto updateUser(@RequestBody UserDto userDto, @PathVariable Long userId) {
         log.info("Request received PATCH /users: with id = {}", userId);
         User patchedUser = UserMapper.fromUserDto(userDto);
         patchedUser.setId(userId);
-        return userService.updateUser(patchedUser);
+        return UserMapper
+                .toUserDto(userService
+                        .updateUser(patchedUser));
     }
 
     @DeleteMapping("/{userId}")

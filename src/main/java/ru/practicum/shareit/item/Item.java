@@ -17,8 +17,9 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
-import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
@@ -36,12 +37,12 @@ public class Item {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    @NotBlank(message = "Name cannot be empty")
-    @Size(max = 100, message = "Name must be shorter than 100 characters")
+    @NotEmpty(message = "The field name can not be empty")
+    @Size(max = 255, message = "Name must be shorter than 255 characters")
     private String name;
 
-    @NotNull(message = "Description cannot be null")
-    @Size(max = 300, message = "Description must be shorter than 300 characters")
+    @NotEmpty(message = "The field description can not be empty")
+    @Size(max = 1024, message = "Description must be shorter than 1024 characters")
     private String description;
 
     @NotNull(message = "Description cannot be null")
@@ -49,11 +50,12 @@ public class Item {
     private Boolean available;
 
     @ManyToOne
+    @NotNull(message = "The field owner can not be null")
     @CollectionTable(name = "users", joinColumns = @JoinColumn(name = "id"))
     @JoinColumn(name = "owner_id")
     private User owner;
 
-    @ManyToOne
+    @OneToOne
     @CollectionTable(name = "requests", joinColumns = @JoinColumn(name = "id"))
     @JoinColumn(name = "request_id")
     private ItemRequest request;
