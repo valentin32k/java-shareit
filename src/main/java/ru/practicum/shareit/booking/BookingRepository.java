@@ -38,7 +38,7 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
 
     List<Booking> findAllByItemOwnerId(long ownerId);
 
-    List<Booking> findAllByBookerIdAndItemIdAndStatusAndEndIsBefore(
+    boolean existsBookingByBookerIdAndItemIdAndStatusAndEndIsBefore(
             long bookerId,
             long itemId,
             BookingStatus status,

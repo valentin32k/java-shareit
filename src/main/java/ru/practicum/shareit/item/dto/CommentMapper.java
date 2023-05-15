@@ -1,30 +1,38 @@
 package ru.practicum.shareit.item.dto;
 
+import lombok.experimental.UtilityClass;
 import ru.practicum.shareit.item.Comment;
-import ru.practicum.shareit.item.Item;
-import ru.practicum.shareit.user.User;
 
-import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
 
+@UtilityClass
 public class CommentMapper {
-    public static Comment fromCommentDto(CommentDto commentDto, Item item, User author, LocalDateTime created) {
+
+    public Comment fromInputCommentDto(InputCommentDto inputCommentDto) {
         return Comment.builder()
-                .text(commentDto.getText())
-                .item(item)
-                .author(author)
-                .created(created)
+                .text(inputCommentDto.getText())
                 .build();
     }
 
-    public static CommentDto toCommentDto(Comment comment) {
+    public OutputCommentDto toOutputCommentDto(Comment comment) {
         if (comment == null) {
             return null;
         }
-        return CommentDto.builder()
+        return OutputCommentDto.builder()
                 .id(comment.getId())
                 .text(comment.getText())
                 .authorName(comment.getAuthor().getName())
                 .created(comment.getCreated())
                 .build();
+    }
+
+    public List<OutputCommentDto> toOutputCommentDtoList(List<Comment> comments) {
+        if (comments == null) {
+            return null;
+        }
+        return comments.stream()
+                .map(CommentMapper::toOutputCommentDto)
+                .collect(Collectors.toList());
     }
 }

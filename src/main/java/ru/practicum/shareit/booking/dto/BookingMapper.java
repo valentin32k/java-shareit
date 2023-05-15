@@ -1,34 +1,55 @@
 package ru.practicum.shareit.booking.dto;
 
+import lombok.experimental.UtilityClass;
 import ru.practicum.shareit.booking.Booking;
 import ru.practicum.shareit.booking.BookingStatus;
 import ru.practicum.shareit.item.Item;
+import ru.practicum.shareit.item.dto.OutputItemDto;
 import ru.practicum.shareit.user.User;
+import ru.practicum.shareit.user.dto.UserDto;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
+@UtilityClass
 public class BookingMapper {
 
-    public static Booking fromBookindDto(BookingDto bookingDto, Item item, User booker) {
+    public Booking fromInputBookingDto(InputBookingDto inputBookingDto, Item item, User booker) {
         return Booking.builder()
-                .start(bookingDto.getStart())
-                .end(bookingDto.getEnd())
+                .start(inputBookingDto.getStart())
+                .end(inputBookingDto.getEnd())
                 .item(item)
                 .booker(booker)
                 .status(BookingStatus.WAITING)
                 .build();
     }
 
-    public static BookingDto toBookingDto(Booking booking) {
+    public OutputBookingDto toOutputBookingDto(Booking booking) {
         if (booking == null) {
             return null;
         }
-        return BookingDto.builder()
+        OutputItemDto.ShortItemDto returnedItem = new OutputItemDto.ShortItemDto();
+        returnedItem.id = booking.getItem().getId();
+        returnedItem.name = booking.getItem().getName();
+        UserDto.ShortUserDto returnedBooker = new UserDto.ShortUserDto();
+        returnedBooker.id = booking.getBooker().getId();
+        return OutputBookingDto.builder()
                 .id(booking.getId())
                 .start(booking.getStart())
                 .end(booking.getEnd())
-                .item(booking.getItem())
-                .booker(booking.getBooker())
-                .bookerId(booking.getBooker().getId())
+                .item(returnedItem)
+                .booker(returnedBooker)
+                .bookerId(returnedBooker.id)
                 .status(booking.getStatus())
                 .build();
+    }
+
+    public List<OutputBookingDto> toOutputBookingDtoList(List<Booking> bookings) {
+        if (bookings == null) {
+            return null;
+        }
+        return bookings.stream()
+                .map(BookingMapper::toOutputBookingDto)
+                .collect(Collectors.toList());
     }
 }

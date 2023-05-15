@@ -3,17 +3,14 @@ package ru.practicum.shareit.item.dto;
 import lombok.Builder;
 import lombok.Value;
 
-import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
-import java.time.LocalDateTime;
 
 @Value
 @Builder
-public class CommentDto {
+public class InputCommentDto {
     long id;
-    @NotEmpty(message = "Comment text can not be empty")
+    @NotBlank(message = "Comment text can not be blank")
     @Size(max = 4096, message = "Comment text must be shorter than 4096 characters")
     String text;
-    String authorName;
-    LocalDateTime created;
 }

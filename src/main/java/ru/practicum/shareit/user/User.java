@@ -14,6 +14,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 import javax.validation.constraints.Email;
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Size;
 
@@ -31,7 +32,7 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    @NotEmpty(message = "The field name can not be empty")
+    @NotBlank(message = "The field name can not be blank")
     @Size(max = 255, message = "Name must be shorter than 255 characters")
     private String name;
 
@@ -40,17 +41,4 @@ public class User {
     @Size(max = 255, message = "Email must be shorter than 255 characters")
     @Column(name = "email", unique = true)
     private String email;
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        User user = (User) o;
-        return id == user.id;
-    }
-
-    @Override
-    public int hashCode() {
-        return getClass().hashCode();
-    }
 }

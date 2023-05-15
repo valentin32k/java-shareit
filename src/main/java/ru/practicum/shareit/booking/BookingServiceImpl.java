@@ -10,7 +10,6 @@ import ru.practicum.shareit.user.UserService;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @Transactional(readOnly = true)
@@ -57,16 +56,14 @@ public class BookingServiceImpl implements BookingService {
         } else {
             returnedBooking.setStatus(BookingStatus.REJECTED);
         }
-        return bookingRepository.save(returnedBooking);
+        return returnedBooking;
     }
 
     @Override
     public Booking getBookingById(long bookingId, long askUserId) {
-        Optional<Booking> booking = bookingRepository.findById(bookingId);
-        if (booking.isEmpty()) {
-            throw new NotFoundException("Can not find booking with id = " + bookingId);
-        }
-        Booking returnedBooking = booking.get();
+        Booking returnedBooking = bookingRepository
+                .findById(bookingId)
+                .orElseThrow(() -> new NotFoundException("Can not find booking with id = " + bookingId));
         if (askUserId != returnedBooking.getBooker().getId() &&
                 askUserId != returnedBooking.getItem().getOwner().getId()) {
             throw new NotFoundException("Not item owner and not booker try to get booking");
@@ -92,9 +89,7 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public List<Booking> getBookingsByUserId(BookingState state, long userId) {
-        if (userService.getUserById(userId) == null) {
-            throw new BadUserException("There is no user with id = " + userId);
-        }
+        userService.getUserById(userId);
         LocalDateTime currentTime = LocalDateTime.now();
         List<Booking> bookings;
         switch (state) {
@@ -135,9 +130,7 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public List<Booking> getOwnerItemsBookings(BookingState state, long userId) {
-        if (userService.getUserById(userId) == null) {
-            throw new BadUserException("There is no user with id = " + userId);
-        }
+        userService.getUserById(userId);
         List<Booking> bookings;
         LocalDateTime currentTime = LocalDateTime.now();
         switch (state) {
@@ -186,11 +179,10 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public boolean isAllowedToComment(long userId, long itemId) {
-        List<Booking> bookings = bookingRepository.findAllByBookerIdAndItemIdAndStatusAndEndIsBefore(
+        return bookingRepository.existsBookingByBookerIdAndItemIdAndStatusAndEndIsBefore(
                 userId,
                 itemId,
                 BookingStatus.APPROVED,
                 LocalDateTime.now());
-        return !bookings.isEmpty();
     }
 }

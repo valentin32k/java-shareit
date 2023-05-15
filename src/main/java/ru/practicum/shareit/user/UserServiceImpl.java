@@ -6,7 +6,6 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.exceptions.NotFoundException;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @Transactional(readOnly = true)
@@ -25,21 +24,23 @@ public class UserServiceImpl implements UserService {
     public User updateUser(User user) {
         User updatedUser = getUserById(user.getId());
         if (user.getName() != null) {
-            updatedUser.setName(user.getName());
+            if (!user.getName().isBlank()) {
+                updatedUser.setName(user.getName());
+            }
         }
         if (user.getEmail() != null) {
-            updatedUser.setEmail(user.getEmail());
+            if (!user.getEmail().isBlank()) {
+                updatedUser.setEmail(user.getEmail());
+            }
         }
-        return userRepository.save(updatedUser);
+        return updatedUser;
     }
 
     @Override
     public User getUserById(Long userId) {
-        Optional<User> user = userRepository.findById(userId);
-        if (user.isEmpty()) {
-            throw new NotFoundException("User with id = " + userId + " is not found");
-        }
-        return user.get();
+        return userRepository
+                .findById(userId)
+                .orElseThrow(() -> new NotFoundException("User with id = " + userId + " is not found"));
     }
 
     @Override

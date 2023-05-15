@@ -10,12 +10,12 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import ru.practicum.shareit.user.dto.UpdatedUserDto;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.dto.UserMapper;
 
 import javax.validation.Valid;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping(path = "/users")
@@ -44,17 +44,13 @@ public class UserController {
     @GetMapping
     public List<UserDto> getUsers() {
         log.info("Request received GET /users");
-        return userService
-                .getUsers()
-                .stream()
-                .map(UserMapper::toUserDto)
-                .collect(Collectors.toList());
+        return UserMapper.toUserDtoList(userService.getUsers());
     }
 
     @PatchMapping("/{userId}")
-    public UserDto updateUser(@RequestBody UserDto userDto, @PathVariable Long userId) {
+    public UserDto updateUser(@RequestBody @Valid UpdatedUserDto userDto, @PathVariable Long userId) {
         log.info("Request received PATCH /users: with id = {}", userId);
-        User patchedUser = UserMapper.fromUserDto(userDto);
+        User patchedUser = UserMapper.fromUpdatedUserDto(userDto);
         patchedUser.setId(userId);
         return UserMapper
                 .toUserDto(userService
