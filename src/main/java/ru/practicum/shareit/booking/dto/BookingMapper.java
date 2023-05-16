@@ -4,9 +4,7 @@ import lombok.experimental.UtilityClass;
 import ru.practicum.shareit.booking.Booking;
 import ru.practicum.shareit.booking.BookingStatus;
 import ru.practicum.shareit.item.Item;
-import ru.practicum.shareit.item.dto.OutputItemDto;
 import ru.practicum.shareit.user.User;
-import ru.practicum.shareit.user.dto.UserDto;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -28,10 +26,10 @@ public class BookingMapper {
         if (booking == null) {
             return null;
         }
-        OutputItemDto.ShortItemDto returnedItem = new OutputItemDto.ShortItemDto();
+        OutputBookingDto.ShortItemDto returnedItem = new OutputBookingDto.ShortItemDto();
         returnedItem.id = booking.getItem().getId();
         returnedItem.name = booking.getItem().getName();
-        UserDto.ShortUserDto returnedBooker = new UserDto.ShortUserDto();
+        OutputBookingDto.ShortUserDto returnedBooker = new OutputBookingDto.ShortUserDto();
         returnedBooker.id = booking.getBooker().getId();
         return OutputBookingDto.builder()
                 .id(booking.getId())

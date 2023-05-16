@@ -1,15 +1,18 @@
 package ru.practicum.shareit.booking;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.exceptions.BadMethodArgumentsException;
-import ru.practicum.shareit.exceptions.BadUserException;
 import ru.practicum.shareit.exceptions.NotFoundException;
 import ru.practicum.shareit.user.UserService;
 
 import java.time.LocalDateTime;
 import java.util.List;
+
+import static org.springframework.data.domain.Sort.Direction.ASC;
+import static org.springframework.data.domain.Sort.Direction.DESC;
 
 @Service
 @Transactional(readOnly = true)
@@ -72,15 +75,15 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public Booking getLastBooking(long itemId) {
-        return bookingRepository.findFirstByItemIdAndStartIsBeforeAndStatusOrderByStartDesc(
+    public Booking getLastBooking(long itemId, LocalDateTime currentDate) {
+        return bookingRepository.findFirstByItemIdAndStartLessThanEqualAndStatusOrderByStartDesc(
                 itemId,
-                LocalDateTime.now(),
+                currentDate,
                 BookingStatus.APPROVED);
     }
 
     @Override
-    public Booking getNextBooking(long itemId) {
+    public Booking getNextBooking(long itemId, LocalDateTime currentDate) {
         return bookingRepository.findFirstByItemIdAndStartIsAfterAndStatusOrderByStartAsc(
                 itemId,
                 LocalDateTime.now(),
@@ -156,12 +159,13 @@ public class BookingServiceImpl implements BookingService {
             case WAITING:
                 bookings = bookingRepository.findAllByItemOwnerIdAndStatus(
                         userId,
-                        BookingStatus.WAITING);
+                        BookingStatus.WAITING, Sort.by(DESC, "start"));
                 break;
             case REJECTED:
                 bookings = bookingRepository.findAllByItemOwnerIdAndStatus(
                         userId,
-                        BookingStatus.REJECTED);
+                        BookingStatus.REJECTED,
+                        Sort.by(DESC, "start"));
                 break;
             default:
                 throw new BadMethodArgumentsException("User id = " + userId + " or state = " + state + "is wrong");
@@ -171,10 +175,7 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public List<Booking> getOwnerItemsSortedById(long userId) {
-        if (userService.getUserById(userId) == null) {
-            throw new BadUserException("There is no user with id = " + userId);
-        }
-        return bookingRepository.findAllByItemOwnerId(userId);
+        return bookingRepository.findAllByItemOwnerIdAndStatus(userId, BookingStatus.APPROVED, Sort.by(ASC, "id"));
     }
 
     @Override

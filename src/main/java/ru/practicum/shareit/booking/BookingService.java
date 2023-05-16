@@ -1,5 +1,6 @@
 package ru.practicum.shareit.booking;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 public interface BookingService {
@@ -39,18 +40,18 @@ public interface BookingService {
     /**
      * Get last booking info for item with itemId
      *
-     * @param itemId
+     * @param itemId, currentDate
      * @return booking
      */
-    Booking getLastBooking(long itemId);
+    Booking getLastBooking(long itemId, LocalDateTime currentDate);
 
     /**
      * Get next booking info for item with itemId
      *
-     * @param itemId
+     * @param itemId, currentDate
      * @return booking
      */
-    Booking getNextBooking(long itemId);
+    Booking getNextBooking(long itemId, LocalDateTime currentDate);
 
     /**
      * Returns bookings by user id

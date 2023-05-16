@@ -1,20 +1,25 @@
 package ru.practicum.shareit.item;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.Booking;
+import ru.practicum.shareit.booking.BookingRepository;
 import ru.practicum.shareit.booking.BookingService;
 import ru.practicum.shareit.exceptions.BadMethodArgumentsException;
 import ru.practicum.shareit.exceptions.NotFoundException;
 import ru.practicum.shareit.user.UserService;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.toList;
+import static org.springframework.data.domain.Sort.Direction.ASC;
+import static org.springframework.data.domain.Sort.Direction.DESC;
 
 @Service
 @Transactional(readOnly = true)
@@ -22,6 +27,7 @@ import java.util.Map;
 public class ItemServiceImpl implements ItemService {
     private final ItemRepository itemRepository;
     private final CommentRepository commentRepository;
+    private final BookingRepository bookingRepository;
     private final BookingService bookingService;
     private final UserService userService;
 
@@ -39,15 +45,11 @@ public class ItemServiceImpl implements ItemService {
         if (ownerId != currentItem.getOwner().getId()) {
             throw new NotFoundException("Only the owner can update a post");
         }
-        if (item.getName() != null) {
-            if (!item.getName().isBlank()) {
-                currentItem.setName(item.getName());
-            }
+        if (item.getName() != null && !item.getName().isBlank()) {
+            currentItem.setName(item.getName());
         }
-        if (item.getDescription() != null) {
-            if (!item.getDescription().isBlank()) {
-                currentItem.setDescription(item.getDescription());
-            }
+        if (item.getDescription() != null && !item.getDescription().isBlank()) {
+            currentItem.setDescription(item.getDescription());
         }
         if (item.getAvailable() != null) {
             currentItem.setAvailable(item.getAvailable());
@@ -63,8 +65,9 @@ public class ItemServiceImpl implements ItemService {
                 .orElseThrow(() -> new NotFoundException("Item with id = " + itemId + " is not found"));
         item.setComments(getItemComments(itemId));
         if (item.getOwner().getId() == userId) {
-            item.setLastBooking(bookingService.getLastBooking(itemId));
-            item.setNextBooking(bookingService.getNextBooking(itemId));
+            LocalDateTime currentDate = LocalDateTime.now();
+            item.setLastBooking(bookingService.getLastBooking(itemId, currentDate));
+            item.setNextBooking(bookingService.getNextBooking(itemId, currentDate));
         }
         return item;
     }
@@ -72,29 +75,21 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public List<Item> getUserItems(long ownerId) {
         List<Item> items = itemRepository.findAllByOwnerId(ownerId);
-        List<Booking> bookings = bookingService.getOwnerItemsSortedById(ownerId);
-        Map<Long, List<Booking>> bookingsByItemIds = new HashMap<>();
-
-        for (Booking booking : bookings) {
-            List<Booking> itemBookingsList = bookingsByItemIds.get(booking.getItem().getId());
-            if (itemBookingsList == null) {
-                itemBookingsList = new ArrayList<>();
-            }
-            itemBookingsList.add(booking);
-            bookingsByItemIds.put(booking.getItem().getId(), itemBookingsList);
-        }
+        Map<Item, List<Comment>> comments = commentRepository.findByItemIn(items, Sort.by(DESC, "created"))
+                .stream()
+                .collect(groupingBy(Comment::getItem, toList()));
+        Map<Item, List<Booking>> bookings = bookingRepository.findByItemIn(items, Sort.by(ASC, "start"))
+                .stream()
+                .collect(groupingBy(Booking::getItem, toList()));
+        LocalDateTime currentDate = LocalDateTime.now();
         for (Item item : items) {
-            List<Booking> itemBookings = bookingsByItemIds.get(item.getId());
+            item.setComments(comments.get(item));
+            List<Booking> itemBookings = bookings.get(item);
             if (itemBookings != null) {
-                item.setLastBooking(itemBookings.get(0));
-                for (Booking itemBooking : itemBookings) {
-                    if (itemBooking.getStart().isAfter(LocalDateTime.now())) {
-                        if (item.getNextBooking() == null ||
-                                itemBooking.getStart().isBefore(item.getNextBooking().getStart())) {
-                            item.setNextBooking(itemBooking);
-                        }
-                    }
-                }
+                List<Booking> before = itemBookings.stream().filter(b -> b.getStart().isBefore(currentDate)).collect(toList());
+                List<Booking> after = itemBookings.stream().filter(b -> b.getStart().isAfter(currentDate)).collect(toList());
+                item.setNextBooking(after.get(0));
+                item.setLastBooking(before.get(before.size() - 1));
             }
         }
         return items;

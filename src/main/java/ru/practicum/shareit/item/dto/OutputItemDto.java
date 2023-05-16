@@ -1,9 +1,12 @@
 package ru.practicum.shareit.item.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Value;
-import ru.practicum.shareit.booking.dto.OutputBookingDto;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Value
@@ -13,12 +16,18 @@ public class OutputItemDto {
     String name;
     String description;
     Boolean available;
-    OutputBookingDto nextBooking;
-    OutputBookingDto lastBooking;
+    ShortBookingDto nextBooking;
+    ShortBookingDto lastBooking;
     List<OutputCommentDto> comments;
 
-    public static class ShortItemDto {
-        public long id;
-        public String name;
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class ShortBookingDto {
+        private long id;
+        private LocalDateTime start;
+        private LocalDateTime end;
+        private Long bookerId;
     }
 }

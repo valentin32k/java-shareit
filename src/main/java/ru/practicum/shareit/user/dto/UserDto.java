@@ -17,10 +17,6 @@ public class UserDto {
     String name;
     @Email(message = "The field email is incorrect ")
     @NotEmpty(message = "The field email can not be empty")
-    @Size(max = 255, message = "Email must be shorter than 255 characters")
+    @Size(max = 512, message = "Email must be shorter than 512 characters")
     String email;
-
-    public static class ShortUserDto {
-        public long id;
-    }
 }

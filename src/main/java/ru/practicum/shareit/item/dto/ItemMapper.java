@@ -1,7 +1,7 @@
 package ru.practicum.shareit.item.dto;
 
 import lombok.experimental.UtilityClass;
-import ru.practicum.shareit.booking.dto.BookingMapper;
+import ru.practicum.shareit.booking.Booking;
 import ru.practicum.shareit.item.Item;
 
 import java.util.List;
@@ -21,13 +21,33 @@ public class ItemMapper {
         if (item == null) {
             return null;
         }
+        Booking last = item.getLastBooking();
+        Booking next = item.getNextBooking();
+        OutputItemDto.ShortBookingDto lastBooking = null;
+        OutputItemDto.ShortBookingDto nextBooking = null;
+        if (last != null) {
+            lastBooking = OutputItemDto.ShortBookingDto.builder()
+                    .id(last.getId())
+                    .start(last.getStart())
+                    .end(last.getEnd())
+                    .bookerId(last.getBooker().getId())
+                    .build();
+        }
+        if (next != null) {
+            nextBooking = OutputItemDto.ShortBookingDto.builder()
+                    .id(next.getId())
+                    .start(next.getStart())
+                    .end(next.getEnd())
+                    .bookerId(next.getBooker().getId())
+                    .build();
+        }
         return OutputItemDto.builder()
                 .id(item.getId())
                 .name(item.getName())
                 .description(item.getDescription())
                 .available(item.getAvailable())
-                .lastBooking(BookingMapper.toOutputBookingDto(item.getLastBooking()))
-                .nextBooking(BookingMapper.toOutputBookingDto(item.getNextBooking()))
+                .lastBooking(lastBooking)
+                .nextBooking(nextBooking)
                 .comments(CommentMapper.toOutputCommentDtoList(item.getComments()))
                 .build();
     }
