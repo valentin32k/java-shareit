@@ -1,6 +1,5 @@
 package ru.practicum.shareit.booking;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 public interface BookingService {
@@ -38,22 +37,6 @@ public interface BookingService {
     Booking getBookingById(long bookingId, long askUserId);
 
     /**
-     * Get last booking info for item with itemId
-     *
-     * @param itemId, currentDate
-     * @return booking
-     */
-    Booking getLastBooking(long itemId, LocalDateTime currentDate);
-
-    /**
-     * Get next booking info for item with itemId
-     *
-     * @param itemId, currentDate
-     * @return booking
-     */
-    Booking getNextBooking(long itemId, LocalDateTime currentDate);
-
-    /**
      * Returns bookings by user id
      * If there is no user with id throws BadUserException
      *
@@ -70,21 +53,4 @@ public interface BookingService {
      * @return List of bookings
      */
     List<Booking> getOwnerItemsBookings(BookingState state, long userId);
-
-    /**
-     * Get user bookings by user id
-     * If there is no user with id throws BadUserException
-     *
-     * @param userId
-     * @return List of bookings
-     */
-    List<Booking> getOwnerItemsSortedById(long userId);
-
-    /**
-     * Returns the conclusion about the ability to comment
-     *
-     * @param userId, itemId
-     * @return conclusion about the ability to comment
-     */
-    boolean isAllowedToComment(long userId, long itemId);
 }

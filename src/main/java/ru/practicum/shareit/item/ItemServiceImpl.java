@@ -6,10 +6,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.Booking;
 import ru.practicum.shareit.booking.BookingRepository;
-import ru.practicum.shareit.booking.BookingService;
+import ru.practicum.shareit.booking.BookingStatus;
 import ru.practicum.shareit.exceptions.BadMethodArgumentsException;
 import ru.practicum.shareit.exceptions.NotFoundException;
-import ru.practicum.shareit.user.UserService;
+import ru.practicum.shareit.user.UserRepository;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
@@ -28,13 +28,14 @@ public class ItemServiceImpl implements ItemService {
     private final ItemRepository itemRepository;
     private final CommentRepository commentRepository;
     private final BookingRepository bookingRepository;
-    private final BookingService bookingService;
-    private final UserService userService;
+    private final UserRepository userRepository;
 
     @Override
     @Transactional
     public Item createItem(Item item, long ownerId) {
-        item.setOwner(userService.getUserById(ownerId));
+        item.setOwner(userRepository
+                .findById(ownerId)
+                .orElseThrow(() -> new NotFoundException("User with id = " + ownerId + " is not found")));
         return itemRepository.save(item);
     }
 
@@ -66,8 +67,16 @@ public class ItemServiceImpl implements ItemService {
         item.setComments(getItemComments(itemId));
         if (item.getOwner().getId() == userId) {
             LocalDateTime currentDate = LocalDateTime.now();
-            item.setLastBooking(bookingService.getLastBooking(itemId, currentDate));
-            item.setNextBooking(bookingService.getNextBooking(itemId, currentDate));
+            item.setLastBooking(
+                    bookingRepository.findFirstByItemIdAndStartLessThanEqualAndStatusOrderByStartDesc(
+                            itemId,
+                            currentDate,
+                            BookingStatus.APPROVED));
+            item.setNextBooking(
+                    bookingRepository.findFirstByItemIdAndStartIsAfterAndStatusOrderByStartAsc(
+                            itemId,
+                            currentDate,
+                            BookingStatus.APPROVED));
         }
         return item;
     }
@@ -86,10 +95,16 @@ public class ItemServiceImpl implements ItemService {
             item.setComments(comments.get(item));
             List<Booking> itemBookings = bookings.get(item);
             if (itemBookings != null) {
-                List<Booking> before = itemBookings.stream().filter(b -> b.getStart().isBefore(currentDate)).collect(toList());
-                List<Booking> after = itemBookings.stream().filter(b -> b.getStart().isAfter(currentDate)).collect(toList());
-                item.setNextBooking(after.get(0));
-                item.setLastBooking(before.get(before.size() - 1));
+                item.setNextBooking(
+                        itemBookings.stream()
+                                .filter(b -> b.getStart().isAfter(currentDate))
+                                .findFirst()
+                                .orElse(null));
+                item.setLastBooking(
+                        itemBookings.stream()
+                                .filter(b -> !b.getStart().isAfter(currentDate))
+                                .reduce((x, y) -> (x.getStart().isAfter(y.getStart())) ? x : y)
+                                .orElse(null));
             }
         }
         return items;
@@ -106,11 +121,13 @@ public class ItemServiceImpl implements ItemService {
     @Override
     @Transactional
     public Comment createComment(Comment comment, long itemId, long userId) {
-        if (!bookingService.isAllowedToComment(userId, itemId)) {
+        if (!isAllowedToComment(userId, itemId)) {
             throw new BadMethodArgumentsException("Comment not added");
         }
         comment.setItem(getItemById(itemId, userId));
-        comment.setAuthor(userService.getUserById(userId));
+        comment.setAuthor(userRepository
+                .findById(userId)
+                .orElseThrow(() -> new NotFoundException("User with id = " + userId + " is not found")));
         comment.setCreated(LocalDateTime.now());
         return commentRepository.save(comment);
     }
@@ -118,5 +135,13 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public List<Comment> getItemComments(long itemId) {
         return commentRepository.findAllByItemId(itemId);
+    }
+
+    private boolean isAllowedToComment(long userId, long itemId) {
+        return bookingRepository.existsBookingByBookerIdAndItemIdAndStatusAndEndIsBefore(
+                userId,
+                itemId,
+                BookingStatus.APPROVED,
+                LocalDateTime.now());
     }
 }

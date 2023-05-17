@@ -6,12 +6,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.exceptions.BadMethodArgumentsException;
 import ru.practicum.shareit.exceptions.NotFoundException;
-import ru.practicum.shareit.user.UserService;
+import ru.practicum.shareit.user.UserRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static org.springframework.data.domain.Sort.Direction.ASC;
 import static org.springframework.data.domain.Sort.Direction.DESC;
 
 @Service
@@ -19,7 +18,7 @@ import static org.springframework.data.domain.Sort.Direction.DESC;
 @RequiredArgsConstructor
 public class BookingServiceImpl implements BookingService {
     private final BookingRepository bookingRepository;
-    private final UserService userService;
+    private final UserRepository userRepository;
 
     @Override
     @Transactional
@@ -75,24 +74,10 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public Booking getLastBooking(long itemId, LocalDateTime currentDate) {
-        return bookingRepository.findFirstByItemIdAndStartLessThanEqualAndStatusOrderByStartDesc(
-                itemId,
-                currentDate,
-                BookingStatus.APPROVED);
-    }
-
-    @Override
-    public Booking getNextBooking(long itemId, LocalDateTime currentDate) {
-        return bookingRepository.findFirstByItemIdAndStartIsAfterAndStatusOrderByStartAsc(
-                itemId,
-                LocalDateTime.now(),
-                BookingStatus.APPROVED);
-    }
-
-    @Override
     public List<Booking> getBookingsByUserId(BookingState state, long userId) {
-        userService.getUserById(userId);
+        userRepository
+                .findById(userId)
+                .orElseThrow(() -> new NotFoundException("User with id = " + userId + " is not found"));
         LocalDateTime currentTime = LocalDateTime.now();
         List<Booking> bookings;
         switch (state) {
@@ -133,7 +118,9 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public List<Booking> getOwnerItemsBookings(BookingState state, long userId) {
-        userService.getUserById(userId);
+        userRepository
+                .findById(userId)
+                .orElseThrow(() -> new NotFoundException("User with id = " + userId + " is not found"));
         List<Booking> bookings;
         LocalDateTime currentTime = LocalDateTime.now();
         switch (state) {
@@ -171,19 +158,5 @@ public class BookingServiceImpl implements BookingService {
                 throw new BadMethodArgumentsException("User id = " + userId + " or state = " + state + "is wrong");
         }
         return bookings;
-    }
-
-    @Override
-    public List<Booking> getOwnerItemsSortedById(long userId) {
-        return bookingRepository.findAllByItemOwnerIdAndStatus(userId, BookingStatus.APPROVED, Sort.by(ASC, "id"));
-    }
-
-    @Override
-    public boolean isAllowedToComment(long userId, long itemId) {
-        return bookingRepository.existsBookingByBookerIdAndItemIdAndStatusAndEndIsBefore(
-                userId,
-                itemId,
-                BookingStatus.APPROVED,
-                LocalDateTime.now());
     }
 }
