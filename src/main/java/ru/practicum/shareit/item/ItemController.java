@@ -11,10 +11,12 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.dto.CommentMapper;
+import ru.practicum.shareit.item.dto.InputCommentDto;
+import ru.practicum.shareit.item.dto.InputItemDto;
 import ru.practicum.shareit.item.dto.ItemMapper;
-import ru.practicum.shareit.user.User;
-import ru.practicum.shareit.user.UserService;
+import ru.practicum.shareit.item.dto.OutputCommentDto;
+import ru.practicum.shareit.item.dto.OutputItemDto;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -25,44 +27,64 @@ import java.util.List;
 @Slf4j
 public class ItemController {
     private final ItemService itemService;
-    private final UserService userService;
 
     @PostMapping
-    public Item createItem(@RequestBody @Valid ItemDto itemDto,
-                           @RequestHeader("X-Sharer-User-Id") long ownerId) {
-        log.info("Request received POST /items: '{}' for user with ownerId = {}", itemDto, ownerId);
-        User user = userService.getUserById(ownerId);
-        Item item = ItemMapper.fromItemDto(itemDto)
-                .withOwner(user);
-        return itemService.createItem(item);
+    public OutputItemDto createItem(@RequestBody @Valid InputItemDto inputItemDto,
+                                    @RequestHeader("X-Sharer-User-Id") long ownerId) {
+        log.info("Request received POST /items: '{}' for user with ownerId = {}", inputItemDto, ownerId);
+        return ItemMapper.toOutputItemDto(
+                itemService.createItem(
+                        ItemMapper.fromInputItemDto(inputItemDto),
+                        ownerId));
     }
 
     @PatchMapping("/{itemId}")
-    public Item updateItem(@RequestBody ItemDto itemDto,
-                           @PathVariable long itemId,
-                           @RequestHeader("X-Sharer-User-Id") long ownerId) {
+    public OutputItemDto updateItem(@RequestBody InputItemDto inputItemDto,
+                                    @PathVariable long itemId,
+                                    @RequestHeader("X-Sharer-User-Id") long ownerId) {
         log.info("Request received PATCH /items: with id = {}", itemId);
-        Item newItem = ItemMapper.fromItemDto(itemDto);
-        newItem = newItem.withOwner(userService.getUserById(ownerId));
-        newItem = newItem.withId(itemId);
-        return itemService.updateItem(newItem);
+        return ItemMapper.toOutputItemDto(
+                itemService
+                        .updateItem(
+                                ItemMapper.fromInputItemDto(inputItemDto),
+                                itemId,
+                                ownerId));
     }
 
     @GetMapping("/{itemId}")
-    public Item getItemById(@PathVariable long itemId) {
+    public OutputItemDto getItemById(@PathVariable long itemId,
+                                     @RequestHeader("X-Sharer-User-Id") long userId) {
         log.info("Request received GET /items: with id = {}", itemId);
-        return itemService.getItemById(itemId);
+        return ItemMapper.toOutputItemDto(
+                itemService.getItemById(
+                        itemId,
+                        userId));
     }
 
     @GetMapping
-    public List<Item> getUserItems(@RequestHeader("X-Sharer-User-Id") long ownerId) {
+    public List<OutputItemDto> getUserItems(@RequestHeader("X-Sharer-User-Id") long ownerId) {
         log.info("Request received GET /items: with ownerId = {}", ownerId);
-        return itemService.getUserItems(ownerId);
+        return ItemMapper.toItemDtoList(itemService.getUserItems(ownerId));
     }
 
     @GetMapping("/search")
-    public List<Item> findItemsWithText(@RequestParam("text") String text) {
+    public List<OutputItemDto> findItemsWithText(@RequestParam("text") String text) {
         log.info("Request received GET /items/search: with text = {}", text);
-        return itemService.findItemsWithText(text);
+        return ItemMapper.toItemDtoList(itemService.findItemsWithText(text));
+    }
+
+    @PostMapping("/{itemId}/comment")
+    public OutputCommentDto createComment(@RequestBody @Valid InputCommentDto commentDto,
+                                          @RequestHeader("X-Sharer-User-Id") long userId,
+                                          @PathVariable long itemId) {
+        log.info("Request received POST /items/{itemId}/comment: " +
+                "with text = {}, " +
+                "itemId = {} " +
+                "and userId = {}", commentDto.getText(), itemId, userId);
+        return CommentMapper.toOutputCommentDto(
+                itemService.createComment(
+                        CommentMapper.fromInputCommentDto(commentDto),
+                        itemId,
+                        userId));
     }
 }

@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import ru.practicum.shareit.user.dto.UpdatedUserDto;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.dto.UserMapper;
 
@@ -24,27 +25,36 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping
-    public User createUser(@RequestBody @Valid UserDto userDto) {
+    public UserDto createUser(@RequestBody @Valid UserDto userDto) {
         log.info("Request received POST /users: '{}'", userDto);
-        return userService.createUser(UserMapper.fromUserDto(userDto));
+        return UserMapper
+                .toUserDto(userService
+                        .createUser(UserMapper
+                                .fromUserDto(userDto)));
     }
 
     @GetMapping("/{userId}")
-    public User getUserById(@PathVariable Long userId) {
+    public UserDto getUserById(@PathVariable Long userId) {
         log.info("Request received GET /users: with id = {}", userId);
-        return userService.getUserById(userId);
+        return UserMapper
+                .toUserDto(userService
+                        .getUserById(userId));
     }
 
     @GetMapping
-    public List<User> getUsers() {
+    public List<UserDto> getUsers() {
         log.info("Request received GET /users");
-        return userService.getUsers();
+        return UserMapper.toUserDtoList(userService.getUsers());
     }
 
     @PatchMapping("/{userId}")
-    public User updateUser(@RequestBody UserDto userDto, @PathVariable Long userId) {
+    public UserDto updateUser(@RequestBody @Valid UpdatedUserDto userDto, @PathVariable Long userId) {
         log.info("Request received PATCH /users: with id = {}", userId);
-        return userService.updateUser(UserMapper.fromUserDto(userDto).withId(userId));
+        User patchedUser = UserMapper.fromUpdatedUserDto(userDto);
+        patchedUser.setId(userId);
+        return UserMapper
+                .toUserDto(userService
+                        .updateUser(patchedUser));
     }
 
     @DeleteMapping("/{userId}")

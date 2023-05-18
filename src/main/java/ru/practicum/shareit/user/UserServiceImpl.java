@@ -2,62 +2,51 @@ package ru.practicum.shareit.user;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import ru.practicum.shareit.exceptions.BadUserException;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.exceptions.NotFoundException;
 
 import java.util.List;
-import java.util.Objects;
 
 @Service
+@Transactional(readOnly = true)
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
-    private final UserStorage userStorage;
+    private final UserRepository userRepository;
 
     @Override
+    @Transactional
     public User createUser(User user) {
-        if (userStorage.getUsers().stream()
-                .anyMatch(u -> Objects.equals(u.getEmail(),
-                        user.getEmail()))) {
-            throw new BadUserException("User with the same email is already exists");
-        }
-        return userStorage.createUser(user);
+        return userRepository.save(user);
     }
 
     @Override
-    public User getUserById(Long id) {
-        User user = userStorage.getUserById(id);
-        if (user == null) {
-            throw new NotFoundException("User with id = " + id + " is not found");
+    @Transactional
+    public User updateUser(User user) {
+        User updatedUser = getUserById(user.getId());
+        if (user.getName() != null && !user.getName().isBlank()) {
+            updatedUser.setName(user.getName());
         }
-        return user;
+        if (user.getEmail() != null && !user.getEmail().isBlank()) {
+            updatedUser.setEmail(user.getEmail());
+        }
+        return updatedUser;
+    }
+
+    @Override
+    public User getUserById(Long userId) {
+        return userRepository
+                .findById(userId)
+                .orElseThrow(() -> new NotFoundException("User with id = " + userId + " is not found"));
     }
 
     @Override
     public List<User> getUsers() {
-        return userStorage.getUsers();
+        return userRepository.findAll();
     }
 
     @Override
-    public User updateUser(User user) {
-        User currUser = getUserById(user.getId());
-        if (userStorage.getUsers().stream()
-                .anyMatch(u -> Objects.equals(u.getEmail(), user.getEmail()) && u.getId() != user.getId())) {
-            throw new BadUserException("User with the same email is already exists");
-        }
-        if (user.getName() != null) {
-            currUser = currUser.withName(user.getName());
-        }
-        if (user.getEmail() != null) {
-            currUser = currUser.withEmail(user.getEmail());
-        }
-        return userStorage.updateUser(currUser);
-    }
-
-    @Override
-    public void removeUserById(Long id) {
-        if (userStorage.getUserById(id) == null) {
-            throw new NotFoundException("User with id = " + id + " is not found");
-        }
-        userStorage.removeUserById(id);
+    @Transactional
+    public void removeUserById(Long userId) {
+        userRepository.deleteById(userId);
     }
 }
