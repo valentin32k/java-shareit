@@ -19,6 +19,7 @@ public class OutputItemDto {
     ShortBookingDto nextBooking;
     ShortBookingDto lastBooking;
     List<OutputCommentDto> comments;
+    long requestId;
 
     @Getter
     @NoArgsConstructor

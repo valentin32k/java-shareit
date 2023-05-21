@@ -1,6 +1,8 @@
 package ru.practicum.shareit.booking;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -74,89 +76,116 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public List<Booking> getBookingsByUserId(BookingState state, long userId) {
+    public List<Booking> getBookingsByUserId(BookingState state, int from, int size, long userId) {
         userRepository
                 .findById(userId)
                 .orElseThrow(() -> new NotFoundException("User with id = " + userId + " is not found"));
+        if (size < 1 || from < 0) {
+            throw new BadMethodArgumentsException("Bookings size must not be less than 1 " +
+                    "and start item number must not be less then 0");
+        }
+        int page = convertFromToPage(from, size);
         LocalDateTime currentTime = LocalDateTime.now();
-        List<Booking> bookings;
+        Page<Booking> bookings;
         switch (state) {
             case ALL:
-                bookings = bookingRepository.findAllByBookerIdOrderByStartDesc(userId);
+                bookings = bookingRepository.findAllByBookerId(
+                        userId,
+                        PageRequest.of(page, size, Sort.by(DESC, "start")));
                 break;
             case CURRENT:
                 bookings = bookingRepository.findAllByBookerIdAndStartIsBeforeAndEndIsAfter(
                         userId,
                         currentTime,
-                        currentTime);
+                        currentTime,
+                        PageRequest.of(page, size, Sort.by(DESC, "start")));
                 break;
             case PAST:
-                bookings = bookingRepository.findAllByBookerIdAndEndIsBeforeOrderByStartDesc(
+                bookings = bookingRepository.findAllByBookerIdAndEndIsBefore(
                         userId,
-                        currentTime);
+                        currentTime,
+                        PageRequest.of(page, size, Sort.by(DESC, "start")));
                 break;
             case FUTURE:
-                bookings = bookingRepository.findAllByBookerIdAndStartIsAfterOrderByStartDesc(
+                bookings = bookingRepository.findAllByBookerIdAndStartIsAfter(
                         userId,
-                        LocalDateTime.now());
+                        LocalDateTime.now(),
+                        PageRequest.of(page, size, Sort.by(DESC, "start")));
                 break;
             case WAITING:
                 bookings = bookingRepository.findAllByBookerIdAndStatus(
                         userId,
-                        BookingStatus.WAITING);
+                        BookingStatus.WAITING,
+                        PageRequest.of(page, size, Sort.by(DESC, "start")));
                 break;
             case REJECTED:
                 bookings = bookingRepository.findAllByBookerIdAndStatus(
                         userId,
-                        BookingStatus.REJECTED);
+                        BookingStatus.REJECTED,
+                        PageRequest.of(page, size, Sort.by(DESC, "start")));
                 break;
             default:
                 throw new BadMethodArgumentsException("User id = " + userId + " or state = " + state + "is wrong");
         }
-        return bookings;
+        return bookings.getContent();
     }
 
     @Override
-    public List<Booking> getOwnerItemsBookings(BookingState state, long userId) {
+    public List<Booking> getOwnerItemsBookings(BookingState state, int from, int size, long userId) {
         userRepository
                 .findById(userId)
                 .orElseThrow(() -> new NotFoundException("User with id = " + userId + " is not found"));
-        List<Booking> bookings;
+        if (size < 1 || from < 0) {
+            throw new BadMethodArgumentsException("Bookings size must not be less than 1 " +
+                    "and start item number must not be less then 0");
+        }
+        int page = convertFromToPage(from, size);
+        Page<Booking> bookings;
         LocalDateTime currentTime = LocalDateTime.now();
         switch (state) {
             case ALL:
-                bookings = bookingRepository.findAllByItemOwnerIdOrderByStartDesc(userId);
+                bookings = bookingRepository.findAllByItemOwnerId(
+                        userId,
+                        PageRequest.of(page, size, Sort.by(DESC, "start")));
                 break;
             case CURRENT:
                 bookings = bookingRepository.findAllByItemOwnerIdAndStartIsBeforeAndEndIsAfter(
                         userId,
                         currentTime,
-                        currentTime);
+                        currentTime,
+                        PageRequest.of(page, size, Sort.by(DESC, "start")));
                 break;
             case PAST:
-                bookings = bookingRepository.findAllByItemOwnerIdAndEndIsBeforeOrderByStartDesc(
+                bookings = bookingRepository.findAllByItemOwnerIdAndEndIsBefore(
                         userId,
-                        currentTime);
+                        currentTime,
+                        PageRequest.of(page, size, Sort.by(DESC, "start")));
                 break;
             case FUTURE:
-                bookings = bookingRepository.findAllByItemOwnerIdAndStartIsAfterOrderByStartDesc(
+                bookings = bookingRepository.findAllByItemOwnerIdAndStartIsAfter(
                         userId,
-                        LocalDateTime.now());
+                        LocalDateTime.now(),
+                        PageRequest.of(page, size, Sort.by(DESC, "start")));
                 break;
             case WAITING:
                 bookings = bookingRepository.findAllByItemOwnerIdAndStatus(
                         userId,
-                        BookingStatus.WAITING, Sort.by(DESC, "start"));
+                        BookingStatus.WAITING,
+                        PageRequest.of(page, size, Sort.by(DESC, "start")));
                 break;
             case REJECTED:
                 bookings = bookingRepository.findAllByItemOwnerIdAndStatus(
                         userId,
                         BookingStatus.REJECTED,
-                        Sort.by(DESC, "start"));
+                        PageRequest.of(page, size, Sort.by(DESC, "start")));
                 break;
             default:
                 throw new BadMethodArgumentsException("User id = " + userId + " or state = " + state + "is wrong");
         }
-        return bookings;
+        return bookings.getContent();
+    }
+
+    private int convertFromToPage(int from, int size) {
+        return from / size;
     }
 }

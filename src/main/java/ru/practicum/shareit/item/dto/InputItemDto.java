@@ -18,4 +18,5 @@ public class InputItemDto {
     String description;
     @NotNull(message = "Available cannot be null")
     Boolean available;
+    long requestId;
 }
