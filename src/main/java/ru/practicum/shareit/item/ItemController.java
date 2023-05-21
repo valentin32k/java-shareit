@@ -35,7 +35,7 @@ public class ItemController {
         return ItemMapper.toOutputItemDto(
                 itemService.createItem(
                         ItemMapper.fromInputItemDto(inputItemDto),
-                        ownerId));
+                        ownerId, inputItemDto.getRequestId()));
     }
 
     @PatchMapping("/{itemId}")
@@ -62,15 +62,19 @@ public class ItemController {
     }
 
     @GetMapping
-    public List<OutputItemDto> getUserItems(@RequestHeader("X-Sharer-User-Id") long ownerId) {
+    public List<OutputItemDto> getUserItems(@RequestHeader("X-Sharer-User-Id") long ownerId,
+                                            @RequestParam(defaultValue = "0") int from,
+                                            @RequestParam(defaultValue = "20") int size) {
         log.info("Request received GET /items: with ownerId = {}", ownerId);
-        return ItemMapper.toItemDtoList(itemService.getUserItems(ownerId));
+        return ItemMapper.toItemDtoList(itemService.getUserItems(ownerId, from, size));
     }
 
     @GetMapping("/search")
-    public List<OutputItemDto> findItemsWithText(@RequestParam("text") String text) {
+    public List<OutputItemDto> findItemsWithText(@RequestParam("text") String text,
+                                                 @RequestParam(defaultValue = "0") int from,
+                                                 @RequestParam(defaultValue = "20") int size) {
         log.info("Request received GET /items/search: with text = {}", text);
-        return ItemMapper.toItemDtoList(itemService.findItemsWithText(text));
+        return ItemMapper.toItemDtoList(itemService.findItemsWithText(text, from, size));
     }
 
     @PostMapping("/{itemId}/comment")

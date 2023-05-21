@@ -40,17 +40,17 @@ public interface BookingService {
      * Returns bookings by user id
      * If there is no user with id throws BadUserException
      *
-     * @param state, userId
+     * @param state, from, size, userId
      * @return List of bookings
      */
-    List<Booking> getBookingsByUserId(BookingState state, long userId);
+    List<Booking> getBookingsByUserId(BookingState state, int from, int size, long userId);
 
     /**
      * Returns owner items bookings by owner id
      * If there is no user with id throws BadUserException
      *
-     * @param state, userId
+     * @param state, from, size, userId
      * @return List of bookings
      */
-    List<Booking> getOwnerItemsBookings(BookingState state, long userId);
+    List<Booking> getOwnerItemsBookings(BookingState state, int from, int size, long userId);
 }
