@@ -157,6 +157,7 @@ public class ItemServiceImpl implements ItemService {
     }
 
     private boolean isAllowedToComment(long userId, long itemId) {
+
         return bookingRepository.existsBookingByBookerIdAndItemIdAndStatusAndEndIsBefore(
                 userId,
                 itemId,
