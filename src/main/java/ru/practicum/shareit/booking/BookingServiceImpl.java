@@ -37,6 +37,7 @@ public class BookingServiceImpl implements BookingService {
                     ", end booking time = " +
                     booking.getEnd());
         }
+        System.out.println(bookingRepository.save(booking));
         return bookingRepository.save(booking);
     }
 
