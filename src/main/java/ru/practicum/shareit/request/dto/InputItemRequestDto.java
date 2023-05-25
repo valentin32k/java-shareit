@@ -1,6 +1,7 @@
 package ru.practicum.shareit.request.dto;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -14,6 +15,7 @@ import javax.validation.constraints.Size;
 @ToString
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 public class InputItemRequestDto {
 
     @NotBlank(message = "The field description can not be blank")
