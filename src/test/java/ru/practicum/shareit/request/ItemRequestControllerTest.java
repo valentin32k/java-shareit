@@ -60,9 +60,8 @@ class ItemRequestControllerTest {
                 .requestor(user)
                 .created(LocalDateTime.now())
                 .build();
-        InputItemRequestDto inputItemRequestDto = InputItemRequestDto.builder()
-                .description("descr")
-                .build();
+        InputItemRequestDto inputItemRequestDto = new InputItemRequestDto();
+        inputItemRequestDto.setDescription("descr");
         outputItemRequestDto = ItemRequestMapper.toOutputItemRequestDto(itemRequest);
         json = mapper.writeValueAsString(inputItemRequestDto);
     }
