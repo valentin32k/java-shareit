@@ -1,6 +1,7 @@
 package ru.practicum.shareit.item;
 
 import lombok.RequiredArgsConstructor;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -28,12 +29,16 @@ class ItemServiceImplTestIntegration {
     private final ItemService itemService;
     private final UserService userService;
     private final BookingService bookingService;
+    private Item item;
+
+    @BeforeEach
+    void setup() {
+        item = initItem();
+        item = itemService.createItem(item, item.getOwner().getId(), 15);
+    }
 
     @Test
     void createItem() {
-        Item item = initItem();
-        item = itemService.createItem(item, item.getOwner().getId(), 0);
-
         TypedQuery<Item> query = em.createQuery("select i from Item i where i.id = :id", Item.class);
         Item newItem = query.setParameter("id", item.getId()).getSingleResult();
 
@@ -46,13 +51,9 @@ class ItemServiceImplTestIntegration {
 
     @Test
     void updateItem() {
-        Item item = initItem();
-        item = itemService.createItem(item, item.getOwner().getId(), 0);
-
         item.setName("cccccc");
         item.setDescription("ssssss");
         item.setAvailable(false);
-
         TypedQuery<Item> query = em.createQuery("select i from Item i where i.id = :id", Item.class);
         Item newItem = query.setParameter("id", item.getId()).getSingleResult();
 
@@ -65,9 +66,6 @@ class ItemServiceImplTestIntegration {
 
     @Test
     void getItemById() {
-        Item item = initItem();
-        item = itemService.createItem(item, item.getOwner().getId(), 0);
-
         Item newItem = itemService.getItemById(item.getId(), item.getOwner().getId());
 
         assertThat(newItem.getId(), notNullValue());
@@ -79,8 +77,6 @@ class ItemServiceImplTestIntegration {
 
     @Test
     void getUserItems() {
-        Item item = initItem();
-        item = itemService.createItem(item, item.getOwner().getId(), 0);
         List<Item> items = itemService.getUserItems(item.getOwner().getId(), 0, 20);
         Item newItem = items.get(0);
 
@@ -94,10 +90,7 @@ class ItemServiceImplTestIntegration {
 
     @Test
     void findItemsWithText() {
-        Item item = initItem();
-        item = itemService.createItem(item, item.getOwner().getId(), 0);
         List<Item> items = itemService.findItemsWithText("dd", 0, 20);
-
         Item newItem = items.get(0);
 
         assertThat(items.size(), equalTo(1));
@@ -110,8 +103,6 @@ class ItemServiceImplTestIntegration {
 
     @Test
     void createComment() {
-        Item item = initItem();
-        item = itemService.createItem(item, item.getOwner().getId(), item.getOwner().getId());
         User booker = initBooker();
         booker = userService.createUser(booker);
         Booking booking = Booking.builder()
@@ -128,7 +119,6 @@ class ItemServiceImplTestIntegration {
                 .author(booker)
                 .build();
         comment = itemService.createComment(comment, item.getId(), booker.getId());
-
         TypedQuery<Comment> query = em.createQuery("select c from Comment c where c.id = :id", Comment.class);
         Comment newComment = query.setParameter("id", item.getId()).getSingleResult();
 
@@ -141,8 +131,6 @@ class ItemServiceImplTestIntegration {
 
     @Test
     void getItemComments() {
-        Item item = initItem();
-        item = itemService.createItem(item, item.getOwner().getId(), item.getOwner().getId());
         User booker = initBooker();
         booker = userService.createUser(booker);
         Booking booking = Booking.builder()
@@ -159,7 +147,6 @@ class ItemServiceImplTestIntegration {
                 .author(booker)
                 .build();
         comment = itemService.createComment(comment, item.getId(), booker.getId());
-
         List<Comment> commentList = itemService.getItemComments(item.getId());
         Comment newComment = commentList.get(0);
 

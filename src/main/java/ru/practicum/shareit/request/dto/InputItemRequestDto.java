@@ -20,7 +20,7 @@ public class InputItemRequestDto {
 
     @NotBlank(message = "The field description can not be blank")
     @Size(max = 1024, message = "Description must be shorter than 1024 characters")
-    String description;
+    private String description;
 
 
 }

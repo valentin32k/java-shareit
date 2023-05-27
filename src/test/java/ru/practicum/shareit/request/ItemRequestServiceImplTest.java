@@ -30,14 +30,12 @@ import static org.springframework.data.domain.Sort.Direction.DESC;
 
 @ExtendWith(MockitoExtension.class)
 class ItemRequestServiceImplTest {
-
     @Mock
     private UserRepository userRepository;
     @Mock
     private ItemRepository itemRepository;
     @Mock
     private ItemRequestRepository itemRequestRepository;
-
     @InjectMocks
     private ItemRequestServiceImpl service;
 
@@ -88,6 +86,7 @@ class ItemRequestServiceImplTest {
     void getItemRequests_shouldReturnListOfTwoItems() {
         ItemRequest itemRequest1 = firstItemRequest();
         ItemRequest itemRequest2 = secondItemRequest();
+
         Mockito.when(
                         itemRequestRepository
                                 .findAllByRequestorIdNot(55L,
@@ -100,14 +99,16 @@ class ItemRequestServiceImplTest {
 
     @Test
     void getItemRequestsWithBadFrom_shouldThrowBadMethodArgumentsException() {
-        BadMethodArgumentsException exception = assertThrows(BadMethodArgumentsException.class, () -> service.getItemRequests(-1, 5, 1L));
+        BadMethodArgumentsException exception =
+                assertThrows(BadMethodArgumentsException.class, () -> service.getItemRequests(-1, 5, 1L));
         assertEquals("Items request size must not be less than 1 " +
                 "and start item number must not be less then 0", exception.getMessage());
     }
 
     @Test
     void getItemRequestsWithBadSize_shouldThrowBadMethodArgumentsException() {
-        BadMethodArgumentsException exception = assertThrows(BadMethodArgumentsException.class, () -> service.getItemRequests(0, 0, 1L));
+        BadMethodArgumentsException exception =
+                assertThrows(BadMethodArgumentsException.class, () -> service.getItemRequests(0, 0, 1L));
         assertEquals("Items request size must not be less than 1 " +
                 "and start item number must not be less then 0", exception.getMessage());
     }
@@ -120,7 +121,6 @@ class ItemRequestServiceImplTest {
         Mockito.when(itemRequestRepository.findById(1L)).thenReturn(Optional.of(itemRequest1));
 
         assertEquals(itemRequest1, service.getItemRequestById(1L, 1L));
-
         verify(userRepository, times(1)).findById(anyLong());
         verify(itemRequestRepository, times(1)).findById(anyLong());
     }
@@ -128,7 +128,9 @@ class ItemRequestServiceImplTest {
     @Test
     void getItemRequestByIdWithBadUserId_shouldThrowNotFoundException() {
         Mockito.when(userRepository.findById(anyLong())).thenReturn(Optional.empty());
-        NotFoundException exception = assertThrows(NotFoundException.class, () -> service.getItemRequestById(2L, 1L));
+
+        NotFoundException exception =
+                assertThrows(NotFoundException.class, () -> service.getItemRequestById(2L, 1L));
         assertEquals("User with id = 1 is not found", exception.getMessage());
     }
 
@@ -136,7 +138,9 @@ class ItemRequestServiceImplTest {
     void getItemRequestByIdWithBadItemId_shouldThrowNotFoundException() {
         Mockito.when(userRepository.findById(anyLong())).thenReturn(Optional.of(initUser()));
         Mockito.when(itemRequestRepository.findById(anyLong())).thenReturn(Optional.empty());
-        NotFoundException exception = assertThrows(NotFoundException.class, () -> service.getItemRequestById(2L, 1L));
+
+        NotFoundException exception =
+                assertThrows(NotFoundException.class, () -> service.getItemRequestById(2L, 1L));
         assertEquals("Item request with id = 2 is not found", exception.getMessage());
     }
 
@@ -155,14 +159,12 @@ class ItemRequestServiceImplTest {
                 .description("description")
                 .available(true)
                 .build();
-
         Item item2 = Item.builder()
                 .id(2)
                 .name("name2")
                 .description("description2")
                 .available(true)
                 .build();
-
         return ItemRequest.builder()
                 .id(1)
                 .description("requestDescription1")

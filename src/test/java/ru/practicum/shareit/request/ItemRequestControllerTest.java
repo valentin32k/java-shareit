@@ -19,13 +19,16 @@ import ru.practicum.shareit.user.User;
 
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 import static org.hamcrest.Matchers.is;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -33,21 +36,20 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class ItemRequestControllerTest {
     private final ObjectMapper mapper = new ObjectMapper().registerModule(new JavaTimeModule());
     private MockMvc mvc;
-    private User user;
     private ItemRequest itemRequest;
-    private InputItemRequestDto inputItemRequestDto;
     private OutputItemRequestDto outputItemRequestDto;
+    private String json;
     @Mock
     ItemRequestService itemRequestService;
     @InjectMocks
     ItemRequestController controller;
 
     @BeforeEach
-    void setUp() {
+    void setup() throws JsonProcessingException {
         mvc = MockMvcBuilders
                 .standaloneSetup(controller)
                 .build();
-        user = User.builder()
+        User user = User.builder()
                 .id(1)
                 .email("john.doe@mail.com")
                 .name("John")
@@ -58,21 +60,19 @@ class ItemRequestControllerTest {
                 .requestor(user)
                 .created(LocalDateTime.now())
                 .build();
-        inputItemRequestDto = InputItemRequestDto.builder()
+        InputItemRequestDto inputItemRequestDto = InputItemRequestDto.builder()
                 .description("descr")
                 .build();
         outputItemRequestDto = ItemRequestMapper.toOutputItemRequestDto(itemRequest);
-
+        json = mapper.writeValueAsString(inputItemRequestDto);
     }
 
     @Test
     void createItemRequest() throws Exception {
-        String input = mapper.writeValueAsString(inputItemRequestDto);
-
-        when(itemRequestService.createItemRequest(any(),anyLong())).thenReturn(itemRequest);
+        when(itemRequestService.createItemRequest(any(), anyLong())).thenReturn(itemRequest);
 
         mvc.perform(post("/requests", 1)
-                        .content(input)
+                        .content(json)
                         .characterEncoding(StandardCharsets.UTF_8)
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON)
@@ -81,18 +81,48 @@ class ItemRequestControllerTest {
                 .andExpect(jsonPath("$.id", is(outputItemRequestDto.getId()), Long.class))
                 .andExpect(jsonPath("$.description", is(outputItemRequestDto.getDescription())))
                 .andExpect(jsonPath("$.items", is(outputItemRequestDto.getItems())));
-
     }
 
-//    @Test
-//    void getUserItemRequests() {
-//    }
-//
-//    @Test
-//    void getItemRequests() {
-//    }
-//
-//    @Test
-//    void getItemRequestById() {
-//    }
+    @Test
+    void getUserItemRequests() throws Exception {
+        json = mapper.writeValueAsString(List.of(outputItemRequestDto));
+
+        when(itemRequestService.getUserItemRequests(anyLong())).thenReturn(List.of(itemRequest));
+
+        mvc.perform(get("/requests", 1)
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .header("X-Sharer-User-Id", 1))
+                .andExpect(status().isOk())
+                .andExpect(content().json(json));
+    }
+
+    @Test
+    void getItemRequests() throws Exception {
+        String json = mapper.writeValueAsString(List.of(outputItemRequestDto));
+
+        when(itemRequestService.getItemRequests(anyInt(), anyInt(), anyLong())).thenReturn(List.of(itemRequest));
+
+        mvc.perform(get("/requests/all?from={from}&size={size}", 0, 20)
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .header("X-Sharer-User-Id", 1))
+                .andExpect(status().isOk())
+                .andExpect(content().json(json));
+    }
+
+    @Test
+    void getItemRequestById() throws Exception {
+        when(itemRequestService.getItemRequestById(anyLong(), anyLong())).thenReturn(itemRequest);
+
+        mvc.perform(get("/requests/{requestId}", 1)
+                        .characterEncoding(StandardCharsets.UTF_8)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .header("X-Sharer-User-Id", 1))
+                .andExpect(status().isOk())
+                .andExpect(content().json(json));
+    }
 }
