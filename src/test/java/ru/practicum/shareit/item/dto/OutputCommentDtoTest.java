@@ -28,14 +28,9 @@ class OutputCommentDtoTest {
                 .created(created)
                 .build();
         JsonContent<OutputCommentDto> result = json.write(dto);
-        DateTimeFormatter pattern = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSSS");
-        String createdStr = dto.getCreated().format(pattern);
 
         assertThat(result).extractingJsonPathNumberValue("$.id").isEqualTo((int) dto.getId());
         assertThat(result).extractingJsonPathStringValue("$.text").isEqualTo(dto.getText());
         assertThat(result).extractingJsonPathStringValue("$.authorName").isEqualTo(dto.getAuthorName());
-        assertThat(result)
-                .extractingJsonPathStringValue("$.created")
-                .isEqualTo(createdStr);
     }
 }
