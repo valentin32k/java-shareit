@@ -1,5 +1,6 @@
 package ru.practicum.shareit.user;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.junit.jupiter.api.BeforeEach;
@@ -35,13 +36,14 @@ class UserControllerTest {
     private MockMvc mvc;
     private User user;
     private UserDto userDto;
+    private String json;
     @Mock
     private UserService userService;
     @InjectMocks
     private UserController controller;
 
     @BeforeEach
-    void setUp() {
+    void setup() throws JsonProcessingException {
         mvc = MockMvcBuilders
                 .standaloneSetup(controller)
                 .build();
@@ -51,12 +53,11 @@ class UserControllerTest {
                 .name("John")
                 .build();
         userDto = UserMapper.toUserDto(user);
+        json = mapper.writeValueAsString(userDto);
     }
 
     @Test
     void saveNewUser() throws Exception {
-        String json = mapper.writeValueAsString(userDto);
-
         when(userService.createUser(any())).thenReturn(user);
 
         mvc.perform(post("/users")
@@ -72,8 +73,6 @@ class UserControllerTest {
 
     @Test
     void getUserById() throws Exception {
-        String json = mapper.writeValueAsString(userDto);
-
         when(userService.getUserById(anyLong())).thenReturn(user);
 
         mvc.perform(get("/users/{userId}", 1)
@@ -94,7 +93,6 @@ class UserControllerTest {
                 .name("Petya")
                 .email("www@ddd.rr")
                 .build();
-
         List<User> users = List.of(user2, user);
         String json = mapper.writeValueAsString(users);
 
@@ -107,9 +105,6 @@ class UserControllerTest {
 
     @Test
     void updateUser() throws Exception {
-
-        String json = mapper.writeValueAsString(userDto);
-
         when(userService.updateUser(any())).thenReturn(user);
 
         mvc.perform(patch("/users/{userId}", 1)

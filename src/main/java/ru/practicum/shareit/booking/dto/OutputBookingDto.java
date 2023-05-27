@@ -26,8 +26,8 @@ public class OutputBookingDto {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class ShortItemDto {
-        public long id;
-        public String name;
+        private long id;
+        private String name;
     }
 
     @Getter
@@ -35,7 +35,7 @@ public class OutputBookingDto {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class ShortUserDto {
-        public long id;
+        private long id;
     }
 }
 

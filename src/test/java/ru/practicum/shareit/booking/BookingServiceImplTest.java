@@ -30,9 +30,8 @@ class BookingServiceImplTest {
     private BookingRepository bookingRepository;
     @Mock
     private UserRepository userRepository;
-
     @InjectMocks
-    BookingServiceImpl service;
+    private BookingServiceImpl service;
 
     @Test
     void createBooking_shoulCreateNewBooking() {
@@ -62,7 +61,13 @@ class BookingServiceImplTest {
 
         BadMethodArgumentsException exception = assertThrows(
                 BadMethodArgumentsException.class, () -> service.createBooking(booking));
-        assertEquals("Bad method arguments: available = " + booking.getItem().getAvailable() + ", start booking time = " + booking.getStart() + ", end booking time = " + booking.getEnd(), exception.getMessage());
+        assertEquals("Bad method arguments: available = " +
+                        booking.getItem().getAvailable() +
+                        ", start booking time = " +
+                        booking.getStart() +
+                        ", end booking time = " +
+                        booking.getEnd(),
+                exception.getMessage());
     }
 
     @Test

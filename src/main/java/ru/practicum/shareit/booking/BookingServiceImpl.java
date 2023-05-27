@@ -37,7 +37,6 @@ public class BookingServiceImpl implements BookingService {
                     ", end booking time = " +
                     booking.getEnd());
         }
-        System.out.println(bookingRepository.save(booking));
         return bookingRepository.save(booking);
     }
 
@@ -56,7 +55,7 @@ public class BookingServiceImpl implements BookingService {
                 BookingStatus.REJECTED == returnedBooking.getStatus()) {
             throw new BadMethodArgumentsException("You can not change booking status");
         }
-        if (approved) {
+        if (Boolean.TRUE.equals(approved)) {
             returnedBooking.setStatus(BookingStatus.APPROVED);
         } else {
             returnedBooking.setStatus(BookingStatus.REJECTED);

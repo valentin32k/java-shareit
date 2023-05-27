@@ -43,13 +43,13 @@ class ItemServiceImplTest {
     private UserRepository userRepository;
     @Mock
     private ItemRequestRepository itemRequestRepository;
-
     @InjectMocks
     ItemServiceImpl service;
 
     @Test
     void createItemWithRequest_shouldCreateItem() {
         Item item = firstItemInit();
+
         Mockito.when(userRepository.findById(anyLong())).thenReturn(Optional.of(initUser()));
         Mockito.when(itemRequestRepository.findById(anyLong())).thenReturn(Optional.of(itemRequest()));
         Mockito.when(itemRepository.save(any())).thenReturn(item);
@@ -62,7 +62,6 @@ class ItemServiceImplTest {
 
     @Test
     void createItemWithBadUser_shouldThrowNotFoundException() {
-
         Mockito.when(userRepository.findById(anyLong())).thenReturn(Optional.empty());
 
         NotFoundException exception = assertThrows(
@@ -72,8 +71,8 @@ class ItemServiceImplTest {
 
     @Test
     void createItemWithoutRequest_shouldThrowNotFoundException() {
-
         Item item = secondItemInit();
+
         Mockito.when(userRepository.findById(anyLong())).thenReturn(Optional.of(initUser()));
         Mockito.when(itemRequestRepository.findById(anyLong())).thenReturn(Optional.empty());
         Mockito.when(itemRepository.save(any())).thenReturn(item);
@@ -156,7 +155,6 @@ class ItemServiceImplTest {
 
     @Test
     void getItemById_shouldThrowNotFoundException() {
-
         Mockito.when(itemRepository.findById(anyLong())).thenReturn(Optional.empty());
 
         NotFoundException exception = assertThrows(
@@ -230,21 +228,24 @@ class ItemServiceImplTest {
         Comment comment = initComments().get(0);
 
         Mockito.when(commentRepository.save(any())).thenReturn(comment);
-        Mockito.when(bookingRepository.existsBookingByBookerIdAndItemIdAndStatusAndEndIsBefore(anyLong(), anyLong(), any(), any()))
+        Mockito.when(bookingRepository
+                        .existsBookingByBookerIdAndItemIdAndStatusAndEndIsBefore(anyLong(), anyLong(), any(), any()))
                 .thenReturn(true);
         Mockito.when(itemRepository.findById(anyLong())).thenReturn(Optional.of(firstItemInit()));
         Mockito.when(userRepository.findById(anyLong())).thenReturn(Optional.of(initUser()));
 
         assertEquals(comment, service.createComment(comment, 1L, 1L));
         verify(commentRepository, times(1)).save(any());
-        verify(bookingRepository, times(1)).existsBookingByBookerIdAndItemIdAndStatusAndEndIsBefore(anyLong(), anyLong(), any(), any());
+        verify(bookingRepository, times(1))
+                .existsBookingByBookerIdAndItemIdAndStatusAndEndIsBefore(anyLong(), anyLong(), any(), any());
         verify(itemRepository, times(1)).findById(anyLong());
         verify(userRepository, times(1)).findById(anyLong());
     }
 
     @Test
     void createComment_shouldThrowBadMethodArgumentsException() {
-        Mockito.when(bookingRepository.existsBookingByBookerIdAndItemIdAndStatusAndEndIsBefore(anyLong(), anyLong(), any(), any()))
+        Mockito.when(bookingRepository
+                        .existsBookingByBookerIdAndItemIdAndStatusAndEndIsBefore(anyLong(), anyLong(), any(), any()))
                 .thenReturn(false);
 
         BadMethodArgumentsException exception = assertThrows(
@@ -255,7 +256,9 @@ class ItemServiceImplTest {
     @Test
     void getItemComments_shouldReturnListOfComments() {
         List<Comment> comments = initComments();
+
         Mockito.when(commentRepository.findAllByItemId(anyLong())).thenReturn(comments);
+
         assertEquals(comments, service.getItemComments(1L));
     }
 

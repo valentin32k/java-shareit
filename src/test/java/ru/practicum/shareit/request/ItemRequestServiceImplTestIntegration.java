@@ -1,6 +1,7 @@
 package ru.practicum.shareit.request;
 
 import lombok.RequiredArgsConstructor;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -24,13 +25,18 @@ class ItemRequestServiceImplTestIntegration {
     private final EntityManager em;
     private final ItemRequestService service;
     private final UserService userService;
+    private ItemRequest itemRequest;
+
+    @BeforeEach
+    void setup() {
+        itemRequest = initRequest();
+        itemRequest = service.createItemRequest(itemRequest, itemRequest.getRequestor().getId());
+    }
 
     @Test
     void createItemRequest() {
-        ItemRequest itemRequest = initRequest();
-        itemRequest = service.createItemRequest(itemRequest, itemRequest.getRequestor().getId());
-
-        TypedQuery<ItemRequest> query = em.createQuery("select r from ItemRequest r where r.id = :id", ItemRequest.class);
+        TypedQuery<ItemRequest> query =
+                em.createQuery("select r from ItemRequest r where r.id = :id", ItemRequest.class);
         ItemRequest newItemRequest = query.setParameter("id", itemRequest.getId()).getSingleResult();
 
         assertThat(newItemRequest.getId(), notNullValue());
@@ -41,9 +47,6 @@ class ItemRequestServiceImplTestIntegration {
 
     @Test
     void getUserItemRequests() {
-        ItemRequest itemRequest = initRequest();
-        itemRequest = service.createItemRequest(itemRequest, itemRequest.getRequestor().getId());
-
         List<ItemRequest> itemRequestList = service.getUserItemRequests(itemRequest.getRequestor().getId());
         ItemRequest newItemRequest = itemRequestList.get(0);
 
@@ -56,10 +59,8 @@ class ItemRequestServiceImplTestIntegration {
 
     @Test
     void getItemRequests() {
-        ItemRequest itemRequest = initRequest();
-        itemRequest = service.createItemRequest(itemRequest, itemRequest.getRequestor().getId());
-
-        List<ItemRequest> itemRequestList = service.getItemRequests(0, 20, itemRequest.getRequestor().getId() + 1);
+        List<ItemRequest> itemRequestList =
+                service.getItemRequests(0, 20, itemRequest.getRequestor().getId() + 1);
         ItemRequest newItemRequest = itemRequestList.get(0);
 
         assertThat(itemRequestList.size(), equalTo(1));
@@ -71,9 +72,6 @@ class ItemRequestServiceImplTestIntegration {
 
     @Test
     void getItemRequestById() {
-        ItemRequest itemRequest = initRequest();
-        itemRequest = service.createItemRequest(itemRequest, itemRequest.getRequestor().getId());
-
         ItemRequest newItemRequest = service.getItemRequestById(itemRequest.getId(), itemRequest.getRequestor().getId());
 
         assertThat(newItemRequest.getId(), notNullValue());

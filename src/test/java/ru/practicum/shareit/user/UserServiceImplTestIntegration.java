@@ -1,6 +1,7 @@
 package ru.practicum.shareit.user;
 
 import lombok.RequiredArgsConstructor;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -19,15 +20,18 @@ import static org.hamcrest.Matchers.notNullValue;
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
 class UserServiceImplTestIntegration {
-
     private final EntityManager em;
     private final UserServiceImpl service;
+    private User user;
+
+    @BeforeEach
+    void setup() {
+        user = initUser();
+        user = service.createUser(user);
+    }
 
     @Test
     void createUser() {
-        User user = initUser();
-        service.createUser(user);
-
         TypedQuery<User> query = em.createQuery("select u from User u where u.email = :email", User.class);
         User newUser = query.setParameter("email", user.getEmail()).getSingleResult();
 
@@ -38,17 +42,13 @@ class UserServiceImplTestIntegration {
 
     @Test
     void updateUser() {
-        User user = initUser();
-        user = service.createUser(user);
         user.setName("Name2");
         service.updateUser(user);
-
         TypedQuery<User> query = em.createQuery("select u from User u where u.email = :email", User.class);
         List<User> newUsersList = query.setParameter("email", user.getEmail()).getResultList();
-
-        assertThat(newUsersList.size(), is(1));
         User newUser = newUsersList.get(0);
 
+        assertThat(newUsersList.size(), is(1));
         assertThat(newUser.getId(), equalTo(user.getId()));
         assertThat(newUser.getName(), equalTo("Name2"));
         assertThat(newUser.getEmail(), equalTo(user.getEmail()));
@@ -56,9 +56,6 @@ class UserServiceImplTestIntegration {
 
     @Test
     void getUserById() {
-        User user = initUser();
-        user = service.createUser(user);
-
         TypedQuery<User> query = em.createQuery("select u from User u where u.id = :id", User.class);
         User newUser = query.setParameter("id", user.getId()).getSingleResult();
 
@@ -69,23 +66,20 @@ class UserServiceImplTestIntegration {
 
     @Test
     void getUsers() {
-        User user1 = initUser();
         User user2 = User.builder()
                 .id(2)
                 .name("Name2")
                 .email("e2@m.ru")
                 .build();
-        service.createUser(user1);
         service.createUser(user2);
-
         List<User> returnedUsers = service.getUsers();
         User returnedUser1 = returnedUsers.get(0);
         User returnedUser2 = returnedUsers.get(1);
 
         assertThat(returnedUsers.size(), equalTo(2));
         assertThat(returnedUser1.getId(), notNullValue());
-        assertThat(returnedUser1.getName(), equalTo(user1.getName()));
-        assertThat(returnedUser1.getEmail(), equalTo(user1.getEmail()));
+        assertThat(returnedUser1.getName(), equalTo(user.getName()));
+        assertThat(returnedUser1.getEmail(), equalTo(user.getEmail()));
         assertThat(returnedUser2.getId(), notNullValue());
         assertThat(returnedUser2.getName(), equalTo(user2.getName()));
         assertThat(returnedUser2.getEmail(), equalTo(user2.getEmail()));
@@ -93,12 +87,8 @@ class UserServiceImplTestIntegration {
 
     @Test
     void removeUserById() {
-        User user = initUser();
-        user = service.createUser(user);
-
         TypedQuery<User> query = em.createQuery("select u from User u where u.email = :email", User.class);
         List<User> newUsersList = query.setParameter("email", user.getEmail()).getResultList();
-
         service.removeUserById(user.getId());
         query = em.createQuery("select u from User u where u.email = :email", User.class);
         List<User> newUsersList2 = query.setParameter("email", user.getEmail()).getResultList();

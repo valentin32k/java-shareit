@@ -1,6 +1,7 @@
 package ru.practicum.shareit.booking;
 
 import lombok.RequiredArgsConstructor;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -23,16 +24,19 @@ import static org.hamcrest.Matchers.notNullValue;
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
 class BookingServiceImplTestIntegration {
-
     private final EntityManager em;
     private final ItemService itemService;
     private final UserService userService;
     private final BookingServiceImpl bookingService;
+    private Booking booking;
+
+    @BeforeEach
+    void setup() {
+        booking = bookingService.createBooking(initBooking());
+    }
 
     @Test
     void createBooking() {
-        Booking booking = bookingService.createBooking(initBooking());
-
         TypedQuery<Booking> query = em.createQuery("select b from Booking b where b.id = :id", Booking.class);
         Booking newBooking = query.setParameter("id", booking.getId()).getSingleResult();
 
@@ -46,7 +50,6 @@ class BookingServiceImplTestIntegration {
 
     @Test
     void confirmBooking() {
-        Booking booking = bookingService.createBooking(initBooking());
         bookingService.confirmBooking(booking.getId(), booking.getItem().getOwner().getId(), true);
 
         TypedQuery<Booking> query = em.createQuery("select b from Booking b where b.id = :id", Booking.class);
@@ -57,8 +60,6 @@ class BookingServiceImplTestIntegration {
 
     @Test
     void getBookingById() {
-        Booking booking = bookingService.createBooking(initBooking());
-
         Booking returnedBooking = bookingService.getBookingById(booking.getId(), booking.getBooker().getId());
 
         assertThat(returnedBooking.getId(), notNullValue());
@@ -71,13 +72,10 @@ class BookingServiceImplTestIntegration {
 
     @Test
     void getBookingsByUserId() {
-        Booking booking = bookingService.createBooking(initBooking());
-
         List<Booking> returnedBookings = bookingService.getBookingsByUserId(BookingState.ALL, 0, 20, booking.getBooker().getId());
-
-        assertThat(returnedBookings.size(), equalTo(1));
         Booking returnedBooking = returnedBookings.get(0);
 
+        assertThat(returnedBookings.size(), equalTo(1));
         assertThat(returnedBooking.getId(), notNullValue());
         assertThat(returnedBooking.getStart(), equalTo(booking.getStart()));
         assertThat(returnedBooking.getEnd(), equalTo(booking.getEnd()));
@@ -88,13 +86,10 @@ class BookingServiceImplTestIntegration {
 
     @Test
     void getOwnerItemsBookings() {
-        Booking booking = bookingService.createBooking(initBooking());
-
         List<Booking> returnedBookings = bookingService.getOwnerItemsBookings(BookingState.ALL, 0, 20, booking.getItem().getOwner().getId());
-
-        assertThat(returnedBookings.size(), equalTo(1));
         Booking returnedBooking = returnedBookings.get(0);
 
+        assertThat(returnedBookings.size(), equalTo(1));
         assertThat(returnedBooking.getId(), notNullValue());
         assertThat(returnedBooking.getStart(), equalTo(booking.getStart()));
         assertThat(returnedBooking.getEnd(), equalTo(booking.getEnd()));
