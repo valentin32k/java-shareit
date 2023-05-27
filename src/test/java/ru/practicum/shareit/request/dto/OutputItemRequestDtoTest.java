@@ -22,7 +22,6 @@ class OutputItemRequestDtoTest {
     @Test
     void testOutputItemRequestDto() throws IOException {
         LocalDateTime created = LocalDateTime.now().minusDays(11);
-        created = created.minusNanos(created.getNano() - 1100);
         OutputItemRequestDto.ShortItemDto itemShort = OutputItemRequestDto.ShortItemDto.builder()
                 .id(15L)
                 .name("itemName")
@@ -37,13 +36,13 @@ class OutputItemRequestDtoTest {
                 .items(List.of(itemShort))
                 .build();
         JsonContent<OutputItemRequestDto> result = json.write(dto);
-        DateTimeFormatter pattern = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSSS");
+        DateTimeFormatter pattern = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
         String createdStr = dto.getCreated().format(pattern);
 
         assertThat(result).extractingJsonPathNumberValue("$.id").isEqualTo((int) dto.getId());
         assertThat(result).extractingJsonPathStringValue("$.description").isEqualTo(dto.getDescription());
         assertThat(result)
-                .extractingJsonPathStringValue("$.created", "yyyy-MM-dd'T'HH:mm:ss.SSSSSSS")
+                .extractingJsonPathStringValue("$.created")
                 .isEqualTo(createdStr);
         assertThat(result)
                 .extractingJsonPathNumberValue("$.items[0].id")

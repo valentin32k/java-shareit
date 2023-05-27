@@ -21,7 +21,6 @@ class OutputCommentDtoTest {
     @Test
     void testOutputCommentDto() throws IOException {
         LocalDateTime created = LocalDateTime.now();
-        created = created.minusNanos(created.getNano() - 1100);
         OutputCommentDto dto = OutputCommentDto.builder()
                 .id(23L)
                 .text("Все понравилось")
@@ -36,7 +35,7 @@ class OutputCommentDtoTest {
         assertThat(result).extractingJsonPathStringValue("$.text").isEqualTo(dto.getText());
         assertThat(result).extractingJsonPathStringValue("$.authorName").isEqualTo(dto.getAuthorName());
         assertThat(result)
-                .extractingJsonPathStringValue("$.created", "yyyy-MM-dd'T'HH:mm:ss.SSSSSSS")
+                .extractingJsonPathStringValue("$.created")
                 .isEqualTo(createdStr);
     }
 }

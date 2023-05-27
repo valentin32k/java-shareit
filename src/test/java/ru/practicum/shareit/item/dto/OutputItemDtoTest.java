@@ -21,13 +21,9 @@ class OutputItemDtoTest {
     @Test
     void testOutputItemDto() throws IOException {
         LocalDateTime nextStart = LocalDateTime.now().plusHours(35);
-        nextStart = nextStart.minusNanos(nextStart.getNano() - 1100);
         LocalDateTime nextEnd = LocalDateTime.now().plusHours(37);
-        nextEnd = nextEnd.minusNanos(nextEnd.getNano() - 1100);
         LocalDateTime lastStart = LocalDateTime.now().minusHours(35);
-        lastStart = lastStart.minusNanos(lastStart.getNano() - 1100);
         LocalDateTime lastEnd = LocalDateTime.now().minusHours(37);
-        lastEnd = lastEnd.minusNanos(lastEnd.getNano() - 1100);
         OutputItemDto.ShortBookingDto nextBooking = OutputItemDto.ShortBookingDto.builder()
                 .id(1)
                 .start(nextStart)
@@ -50,7 +46,7 @@ class OutputItemDtoTest {
                 .requestId(344)
                 .build();
         JsonContent<OutputItemDto> result = json.write(dto);
-        DateTimeFormatter pattern = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSSS");
+        DateTimeFormatter pattern = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
         String nextBookingStartTime = dto.getNextBooking().getStart().format(pattern);
         String nextBookingEndTime = dto.getNextBooking().getEnd().format(pattern);
         String lastBookingStartTime = dto.getLastBooking().getStart().format(pattern);

@@ -23,9 +23,7 @@ class OutputBookingDtoTest {
         OutputBookingDto.ShortItemDto item = new OutputBookingDto.ShortItemDto(22, "TV");
         OutputBookingDto.ShortUserDto user = new OutputBookingDto.ShortUserDto(300);
         LocalDateTime start = LocalDateTime.now().plusHours(1);
-        start = start.minusNanos(start.getNano() - 1100);
         LocalDateTime end = LocalDateTime.now().plusHours(5);
-        end = end.minusNanos(start.getNano() - 1100);
         OutputBookingDto dto = OutputBookingDto.builder()
                 .id(1)
                 .start(start)
@@ -36,16 +34,16 @@ class OutputBookingDtoTest {
                 .status(BookingStatus.WAITING)
                 .build();
         JsonContent<OutputBookingDto> result = json.write(dto);
-        DateTimeFormatter pattern = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSSS");
+        DateTimeFormatter pattern = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
         String startTime = dto.getStart().format(pattern);
         String endTime = dto.getEnd().format(pattern);
 
         assertThat(result).extractingJsonPathNumberValue("$.id").isEqualTo((int) dto.getId());
         assertThat(result)
-                .extractingJsonPathStringValue("$.start", "yyyy-MM-dd'T'HH:mm:ss.SSSSSSS")
+                .extractingJsonPathStringValue("$.start")
                 .isEqualTo(startTime);
         assertThat(result)
-                .extractingJsonPathStringValue("$.end", "yyyy-MM-dd'T'HH:mm:ss.SSSSSSS")
+                .extractingJsonPathStringValue("$.end")
                 .isEqualTo(endTime);
         assertThat(result).extractingJsonPathValue("$.item.id").isEqualTo((int) dto.getItem().getId());
         assertThat(result).extractingJsonPathStringValue("$.item.name").isEqualTo(dto.getItem().getName());
