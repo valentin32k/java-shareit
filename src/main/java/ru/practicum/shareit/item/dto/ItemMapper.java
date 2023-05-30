@@ -41,6 +41,10 @@ public class ItemMapper {
                     .bookerId(next.getBooker().getId())
                     .build();
         }
+        long requestId = 0;
+        if (item.getRequest() != null) {
+            requestId = item.getRequest().getId();
+        }
         return OutputItemDto.builder()
                 .id(item.getId())
                 .name(item.getName())
@@ -49,6 +53,7 @@ public class ItemMapper {
                 .lastBooking(lastBooking)
                 .nextBooking(nextBooking)
                 .comments(CommentMapper.toOutputCommentDtoList(item.getComments()))
+                .requestId(requestId)
                 .build();
     }
 

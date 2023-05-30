@@ -27,17 +27,17 @@ public class BookingMapper {
             return null;
         }
         OutputBookingDto.ShortItemDto returnedItem = new OutputBookingDto.ShortItemDto();
-        returnedItem.id = booking.getItem().getId();
-        returnedItem.name = booking.getItem().getName();
+        returnedItem.setId(booking.getItem().getId());
+        returnedItem.setName(booking.getItem().getName());
         OutputBookingDto.ShortUserDto returnedBooker = new OutputBookingDto.ShortUserDto();
-        returnedBooker.id = booking.getBooker().getId();
+        returnedBooker.setId(booking.getBooker().getId());
         return OutputBookingDto.builder()
                 .id(booking.getId())
                 .start(booking.getStart())
                 .end(booking.getEnd())
                 .item(returnedItem)
                 .booker(returnedBooker)
-                .bookerId(returnedBooker.id)
+                .bookerId(returnedBooker.getId())
                 .status(booking.getStatus())
                 .build();
     }

@@ -27,11 +27,11 @@ public class UserMapper {
         if (user == null) {
             return null;
         }
-        return UserDto.builder()
-                .id(user.getId())
-                .name(user.getName())
-                .email(user.getEmail())
-                .build();
+        UserDto userDto = new UserDto();
+        userDto.setId(user.getId());
+        userDto.setName(user.getName());
+        userDto.setEmail(user.getEmail());
+        return userDto;
     }
 
     public List<UserDto> toUserDtoList(List<User> users) {

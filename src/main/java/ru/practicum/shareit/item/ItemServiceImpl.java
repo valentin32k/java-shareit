@@ -1,6 +1,7 @@
 package ru.practicum.shareit.item;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -9,6 +10,7 @@ import ru.practicum.shareit.booking.BookingRepository;
 import ru.practicum.shareit.booking.BookingStatus;
 import ru.practicum.shareit.exceptions.BadMethodArgumentsException;
 import ru.practicum.shareit.exceptions.NotFoundException;
+import ru.practicum.shareit.request.ItemRequestRepository;
 import ru.practicum.shareit.user.UserRepository;
 
 import java.time.LocalDateTime;
@@ -29,13 +31,17 @@ public class ItemServiceImpl implements ItemService {
     private final CommentRepository commentRepository;
     private final BookingRepository bookingRepository;
     private final UserRepository userRepository;
+    private final ItemRequestRepository itemRequestRepository;
 
     @Override
     @Transactional
-    public Item createItem(Item item, long ownerId) {
+    public Item createItem(Item item, long ownerId, long requestId) {
         item.setOwner(userRepository
                 .findById(ownerId)
                 .orElseThrow(() -> new NotFoundException("User with id = " + ownerId + " is not found")));
+        item.setRequest(itemRequestRepository
+                .findById(requestId)
+                .orElse(null));
         return itemRepository.save(item);
     }
 
@@ -82,8 +88,15 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public List<Item> getUserItems(long ownerId) {
-        List<Item> items = itemRepository.findAllByOwnerId(ownerId);
+    public List<Item> getUserItems(long ownerId, int from, int size) {
+        if (size < 1 || from < 0) {
+            throw new BadMethodArgumentsException("Items size must not be less than 1 " +
+                    "and start item number must not be less then 0");
+        }
+        List<Item> items = itemRepository.findAllByOwnerId(
+                        ownerId,
+                        PageRequest.of(from / size, size, Sort.by(ASC, "id")))
+                .getContent();
         Map<Item, List<Comment>> comments = commentRepository.findByItemIn(items, Sort.by(DESC, "created"))
                 .stream()
                 .collect(groupingBy(Comment::getItem, toList()));
@@ -111,11 +124,17 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public List<Item> findItemsWithText(String text) {
+    public List<Item> findItemsWithText(String text, int from, int size) {
+        if (size < 1 || from < 0) {
+            throw new BadMethodArgumentsException("Items size must not be less than 1 " +
+                    "and start item number must not be less then 0");
+        }
         if (text.isBlank()) {
             return Collections.emptyList();
         }
-        return itemRepository.search(text);
+        return itemRepository
+                .search(text, PageRequest.of(from / size, size, Sort.by(ASC, "id")))
+                .getContent();
     }
 
     @Override

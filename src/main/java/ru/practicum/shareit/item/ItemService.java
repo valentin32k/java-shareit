@@ -10,7 +10,7 @@ public interface ItemService {
      * @param item, ownerId
      * @return new item
      */
-    Item createItem(Item item, long ownerId);
+    Item createItem(Item item, long ownerId, long requestId);
 
     /**
      * Updates the item
@@ -36,7 +36,7 @@ public interface ItemService {
      * @param ownerId
      * @return List of items
      */
-    List<Item> getUserItems(long ownerId);
+    List<Item> getUserItems(long ownerId, int from, int size);
 
     /**
      * Find items with text
@@ -45,7 +45,7 @@ public interface ItemService {
      * @param text
      * @return List of items
      */
-    List<Item> findItemsWithText(String text);
+    List<Item> findItemsWithText(String text, int from, int size);
 
     /**
      * Creates a new comment
