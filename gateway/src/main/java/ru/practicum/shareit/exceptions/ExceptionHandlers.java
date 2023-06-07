@@ -16,7 +16,7 @@ import java.util.Objects;
 public class ExceptionHandlers {
 
     @ExceptionHandler
-    public ResponseEntity<Map<String, String>> IllegalArgumentException(final IllegalArgumentException e) {
+    public ResponseEntity<Map<String, String>> illegalArgumentException(final IllegalArgumentException e) {
         log.warn(e.getMessage());
         return new ResponseEntity<>(Map.of("error", e.getMessage()), HttpStatus.BAD_REQUEST);
     }
