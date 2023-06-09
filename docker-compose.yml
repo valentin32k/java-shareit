@@ -1,14 +1,14 @@
 version: '3.8'
 services:
   db:
-    image: postgres:13.7-alpine
+    image: postgres:14-alpine
     container_name: db
     ports:
       - "6541:5432"
     environment:
       - POSTGRES_DB=shareit
-      - POSTGRES_USER=root
-      - POSTGRES_PASSWORD=root
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=user
 
   server:
     build: server
@@ -20,10 +20,10 @@ services:
       - db
     environment:
       - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/shareit
-      - POSTGRES_USER=root
-      - POSTGRES_PASSWORD=root
-      - TZ=Etc/UTC
-#      Europe/Moscow
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=user
+#      - TZ=Etc/UTC
+      - TZ=Europe/Moscow
 
   gateway:
     build: gateway
